@@ -1,0 +1,15 @@
+{
+  "name": "littlejs-game-jam-2024",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Michael Haynie",
+  "license": "MIT",
+  "dependencies": {
+    "littlejsengine": "^1.10.4"
+  }
+}
