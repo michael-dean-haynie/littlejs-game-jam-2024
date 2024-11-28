@@ -1,7 +1,0 @@
-// minimum configuration to allow IDE js language server to provide intellisense
-{
-    "include": [
-      "./**/*.js", // my source code
-      "node_modules/littlejsengine/dist/*.js" // lib source code (with docs)
-    ]
-}
