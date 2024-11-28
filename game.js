@@ -1,9 +1,8 @@
 'use strict';
 
 import { helloWorld } from './modules/example.js';
-// import module
 import * as LittleJS from './node_modules/littlejsengine/dist/littlejs.esm.js';
-const {tile, vec2, hsl} = LittleJS;
+const { vec2 } = LittleJS;
 
 // show the LittleJS splash screen
 // LittleJS.setShowSplashScreen(true);
@@ -46,4 +45,4 @@ function gameRenderPost()
 
 ///////////////////////////////////////////////////////////////////////////////
 // Startup LittleJS Engine
-LittleJS.engineInit(gameInit, gameUpdate, gameUpdatePost, gameRender, gameRenderPost, ['tiles.png']);
+LittleJS.engineInit(gameInit, gameUpdate, gameUpdatePost, gameRender, gameRenderPost);
