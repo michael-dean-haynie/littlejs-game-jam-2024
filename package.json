@@ -1,15 +1,27 @@
 {
-  "name": "littlejs-game-jam-2024",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "Michael Haynie",
-  "license": "MIT",
-  "dependencies": {
-    "littlejsengine": "^1.10.4"
-  }
+	"name": "littlejs-game-jam-2024",
+	"version": "1.0.0",
+	"description": "",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"lint": "biome check .",
+		"lint:fix": "biome check . --write",
+		"test": "vitest run",
+		"test:watch": "vitest watch",
+		"precommit": "npm run build && npm run lint && npm run test && echo 'Precommit Checks All Passed!'"
+	},
+	"keywords": [],
+	"author": "Michael Haynie",
+	"license": "MIT",
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.7.2",
+		"vite": "^6.0.1",
+		"vitest": "^2.1.6"
+	},
+	"dependencies": {
+		"littlejsengine": "^1.10.4"
+	}
 }
