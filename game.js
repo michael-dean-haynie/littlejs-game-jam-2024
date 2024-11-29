@@ -22,6 +22,7 @@ const {
 
 // globals
 const worldSize = new vec2(100, 100);
+const moveSpeed = .2;
 const movementHelper = new MovementHelper();
 
 let engineObject;
@@ -43,16 +44,16 @@ function gameUpdate()
     // process player input as movement
     movementHelper.update();
     if (movementHelper.currentDirection === Direction.Up) {
-        engineObject.velocity = vec2(0, .1);
+        engineObject.velocity = vec2(0, moveSpeed);
     }
     if (movementHelper.currentDirection === Direction.Left) {
-        engineObject.velocity = vec2(-.1, 0);
+        engineObject.velocity = vec2(moveSpeed * -1, 0);
     }
     if (movementHelper.currentDirection === Direction.Down) {
-        engineObject.velocity = vec2(0, -.1);
+        engineObject.velocity = vec2(0, moveSpeed * -1);
     }
     if (movementHelper.currentDirection === Direction.Right) {
-        engineObject.velocity = vec2(.1, 0);
+        engineObject.velocity = vec2(moveSpeed, 0);
     }
     if (movementHelper.currentDirection === Direction.None) {
         engineObject.velocity = vec2(0, 0);
