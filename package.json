@@ -16,12 +16,14 @@
 	"license": "MIT",
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
+		"@types/fast-astar": "^1.0.3",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.7.2",
 		"vite": "^6.0.1",
 		"vitest": "^2.1.6"
 	},
 	"dependencies": {
+		"fast-astar": "^1.0.6",
 		"littlejsengine": "^1.10.4"
 	}
 }

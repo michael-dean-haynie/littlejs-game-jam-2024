@@ -1,10 +1,11 @@
-import { EngineObject, vec2 } from "littlejsengine";
+import { EngineObject, randColor, vec2 } from "littlejsengine";
 import { MovementHelper } from "../helpers/movement";
 
 export class Avatar extends EngineObject {
 	constructor(...args: ConstructorParameters<typeof EngineObject>) {
 		super(...args);
 		this.setCollision();
+		this.color = randColor();
 
 		this.movementHelper = new MovementHelper();
 		this.moveSpeed = 0.2;
