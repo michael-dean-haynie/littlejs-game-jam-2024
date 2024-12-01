@@ -1,22 +1,16 @@
-import {
-	engineInit,
-	engineObjects,
-	mousePos,
-	mouseWasPressed,
-	setCameraPos,
-	vec2,
-} from "littlejsengine";
-import { ActorMessageBroker } from "./actor-message-broker";
-import { Runner } from "./engine-objects/runner";
+import { engineInit, setCameraPos, vec2 } from "littlejsengine";
 import type { Target } from "./engine-objects/target";
+import { InputHelper } from "./helpers/input";
 import { PathingHelper } from "./helpers/pathing";
+import { MessageBroker } from "./message-broker";
 
 // globals
 const worldSize = vec2(100, 100);
 const centerOfWorld = worldSize.scale(0.5);
 const astarNodeSize = 1;
 const pathingHelper = new PathingHelper(worldSize, astarNodeSize);
-const actorMessageBroker = new ActorMessageBroker();
+const messageBroker = new MessageBroker();
+const inputHelper = new InputHelper(messageBroker);
 
 let target: Target;
 
@@ -45,8 +39,11 @@ function gameUpdate() {
 	// 	target = new Target(mousePos, vec2(1, 1));
 	// }
 
+	// update input
+	inputHelper.update();
+
 	// update actors
-	actorMessageBroker.update();
+	messageBroker.update();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

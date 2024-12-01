@@ -24,6 +24,7 @@
 	},
 	"dependencies": {
 		"fast-astar": "^1.0.6",
-		"littlejsengine": "^1.10.4"
+		"littlejsengine": "^1.10.4",
+		"uuid": "^11.0.3"
 	}
 }

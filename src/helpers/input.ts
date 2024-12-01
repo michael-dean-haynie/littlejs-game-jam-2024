@@ -1,11 +1,11 @@
 import { keyIsDown, keyWasPressed, keyWasReleased } from "littlejsengine";
+import type { MessageBroker } from "../message-broker";
+import { IssueOrderMessage } from "../messages/issue-order-message";
+import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
 import { yeet } from "../utilities/utilities";
 
-/**
- * Tracks player input to maintain a 'currentDirection' value.
- */
-export class MovementHelper {
-	constructor() {
+export class InputHelper {
+	constructor(private readonly messageBroker: MessageBroker) {
 		this.stack = ["none"];
 	}
 
@@ -16,9 +16,14 @@ export class MovementHelper {
 		return this.stack.at(-1) ?? yeet("UNEXPECTED_NULLISH_VALUE");
 	}
 
-	/** detects user input to update the current direction */
 	update(): void {
+		this.handleMovementInput();
+	}
+
+	private handleMovementInput(): void {
 		// NOTE: WASD also auto-maps to arrow keys
+
+		const prevDirection = this.currentDirection;
 
 		// key was pressed
 		if (keyWasPressed("ArrowUp")) {
@@ -46,6 +51,17 @@ export class MovementHelper {
 		}
 		if (keyWasReleased("ArrowRight")) {
 			this.stack = this.stack.filter((dir) => dir !== "right");
+		}
+
+		if (this.currentDirection !== prevDirection) {
+			this.messageBroker.publish(
+				new IssueOrderMessage({
+					order: new MoveInDirectionOrder({
+						direction: this.currentDirection,
+					}),
+					targetUnitId: this.messageBroker.playerActor.playerUnitId,
+				}),
+			);
 		}
 	}
 

@@ -7,6 +7,7 @@ export function IsUnitTypeName(value: string | null): value is UnitTypeName {
 
 export interface UnitType {
 	name: UnitTypeName;
+	moveSpeed: number;
 }
 export type UnitTypeMap = {
 	[K in UnitTypeName]: UnitType;
@@ -15,11 +16,14 @@ export type UnitTypeMap = {
 export const UnitTypes: UnitTypeMap = {
 	prey: {
 		name: "prey",
+		moveSpeed: 0.2,
 	},
 	bunny: {
 		name: "bunny",
+		moveSpeed: 0.1,
 	},
 	pig: {
 		name: "pig",
+		moveSpeed: 0.1,
 	},
 } as const;

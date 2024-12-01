@@ -1,11 +1,11 @@
-import type { ActorMessageBroker } from "../actor-message-broker";
+import type { MessageBroker } from "../message-broker";
 import type { Message, MessageType } from "../messages/message";
 
 export type Handler = (message: Message) => unknown;
 
 export abstract class Actor {
-	constructor(protected readonly actorMessageBroker: ActorMessageBroker) {
-		this.actorMessageBroker.register(this);
+	constructor(protected readonly messageBroker: MessageBroker) {
+		this.messageBroker.register(this);
 		this.messages = [];
 		this.handlers = new Map<MessageType, Handler>();
 	}
