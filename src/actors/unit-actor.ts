@@ -1,10 +1,19 @@
-import { EngineObject, vec2 } from "littlejsengine";
+import {
+	EngineObject,
+	type Vector2,
+	debugRect,
+	isOverlapping,
+	vec2,
+} from "littlejsengine";
 import { v4 } from "uuid";
-import { PathingHelper } from "../helpers/pathing";
 import type { MessageBroker } from "../message-broker";
 import type { CreateUnitMessage } from "../messages/create-unit-message";
-import { IsIssueOrderMessage } from "../messages/issue-order-message";
+import {
+	IsIssueOrderMessage,
+	IssueOrderMessage,
+} from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
+import { AttackOrder } from "../orders/attack-order";
 import { FollowUnitOrder } from "../orders/follow-unit-order";
 import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
 import type { Order } from "../orders/order";
@@ -25,6 +34,7 @@ export class UnitActor extends Actor {
 		this.unitId = v4();
 		this.unitType = createUnitActorMessage.unitType;
 		this._orderQueue = [];
+		this._facingDirection = 2;
 
 		// create engineObject
 		this._engineObject = new EngineObject(
@@ -42,6 +52,7 @@ export class UnitActor extends Actor {
 
 	private _engineObject: EngineObject;
 	private _orderQueue: Order[];
+	private _facingDirection: number;
 
 	update(): void {
 		super.update();
@@ -59,6 +70,50 @@ export class UnitActor extends Actor {
 		}
 	}
 
+	doesOverlap(point: Vector2, size: number): boolean {
+		return isOverlapping(
+			point,
+			vec2(size),
+			this._engineObject.pos,
+			vec2(this.unitType.size),
+		);
+	}
+
+	applyForce(force: Vector2): void {
+		this.messageBroker.publish(
+			new IssueOrderMessage({
+				order: new StopMovingOrder(),
+				orderedUnitId: this.unitId,
+			}),
+		);
+		this._engineObject.applyAcceleration(force);
+	}
+
+	private handleIssueOrderMessage = (message: Message): void => {
+		if (IsIssueOrderMessage(message)) {
+			if (message.orderedUnitId === this.unitId) {
+				if (message.order instanceof MoveInDirectionOrder) {
+					this._orderQueue.length = 0; // empty queue whilst preserving reference
+					this._orderQueue.unshift(message.order);
+				}
+
+				if (message.order instanceof StopMovingOrder) {
+					this._orderQueue.length = 0; // empty queue whilst preserving reference
+					this._orderQueue.unshift(message.order);
+				}
+
+				if (message.order instanceof FollowUnitOrder) {
+					this._orderQueue.length = 0; // empty queue whilst preserving reference
+					this._orderQueue.unshift(message.order);
+				}
+
+				if (message.order instanceof AttackOrder) {
+					this._orderQueue.unshift(message.order);
+				}
+			}
+		}
+	};
+
 	private executeOrder(order: Order): void {
 		if (order instanceof MoveInDirectionOrder) {
 			if (order.direction === "up") {
@@ -73,6 +128,7 @@ export class UnitActor extends Actor {
 			if (order.direction === "right") {
 				this._engineObject.velocity = vec2(this.unitType.moveSpeed, 0);
 			}
+			this._facingDirection = this._engineObject.velocity.direction();
 			order.progress = "in progress";
 		}
 
@@ -96,29 +152,26 @@ export class UnitActor extends Actor {
 			this._engineObject.velocity = direction.normalize(
 				this.unitType.moveSpeed,
 			);
+			this._facingDirection = this._engineObject.velocity.direction();
 
 			order.progress = "in progress";
 		}
-	}
 
-	private handleIssueOrderMessage = (message: Message): void => {
-		if (IsIssueOrderMessage(message)) {
-			if (message.orderedUnitId === this.unitId) {
-				if (message.order instanceof MoveInDirectionOrder) {
-					this._orderQueue.length = 0; // empty queue whilst preserving reference
-					this._orderQueue.unshift(message.order);
-				}
+		if (order instanceof AttackOrder) {
+			console.log("BANG");
+			const target = vec2()
+				.setDirection(this._facingDirection, this.unitType.size)
+				.add(this._engineObject.pos);
 
-				if (message.order instanceof StopMovingOrder) {
-					this._orderQueue.length = 0; // empty queue whilst preserving reference
-					this._orderQueue.unshift(message.order);
-				}
+			debugRect(target, vec2(1, 1));
 
-				if (message.order instanceof FollowUnitOrder) {
-					this._orderQueue.length = 0; // empty queue whilst preserving reference
-					this._orderQueue.unshift(message.order);
-				}
+			const hitActors = this.messageBroker.getUnitActorsByProx(target, 1);
+			for (const actor of hitActors) {
+				console.log("HIT");
+				actor.applyForce(vec2().setDirection(this._facingDirection, 5));
 			}
+
+			order.progress = "complete";
 		}
-	};
+	}
 }

@@ -9,6 +9,7 @@ export const OrderTypes = [
 	"MoveInDirectionOrder",
 	"StopMovingOrder",
 	"FollowUnitOrder",
+	"AttackOrder",
 ] as const;
 export type OrderType = (typeof OrderTypes)[number];
 

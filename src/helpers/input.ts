@@ -1,12 +1,17 @@
-import { keyIsDown, keyWasPressed, keyWasReleased } from "littlejsengine";
+import {
+	keyIsDown,
+	keyWasPressed,
+	keyWasReleased,
+	mouseWasPressed,
+} from "littlejsengine";
 import type { MessageBroker } from "../message-broker";
 import { IssueOrderMessage } from "../messages/issue-order-message";
+import { AttackOrder } from "../orders/attack-order";
 import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
 import { StopMovingOrder } from "../orders/stop-moving-order";
-import { yeet } from "../utilities/utilities";
 
 export class InputHelper {
-	constructor(private readonly messageBroker: MessageBroker) {
+	constructor(private readonly _messageBroker: MessageBroker) {
 		this.stack = [];
 	}
 
@@ -19,6 +24,16 @@ export class InputHelper {
 
 	update(): void {
 		this.handleMovementInput();
+
+		// attack
+		if (mouseWasPressed(0)) {
+			this._messageBroker.publish(
+				new IssueOrderMessage({
+					order: new AttackOrder(),
+					orderedUnitId: this._messageBroker.playerActor.playerUnitId,
+				}),
+			);
+		}
 	}
 
 	private handleMovementInput(): void {
@@ -56,19 +71,19 @@ export class InputHelper {
 
 		if (this.currentDirection !== prevDirection) {
 			if (!this.currentDirection) {
-				this.messageBroker.publish(
+				this._messageBroker.publish(
 					new IssueOrderMessage({
-						order: new StopMovingOrder({}),
-						orderedUnitId: this.messageBroker.playerActor.playerUnitId,
+						order: new StopMovingOrder(),
+						orderedUnitId: this._messageBroker.playerActor.playerUnitId,
 					}),
 				);
 			} else {
-				this.messageBroker.publish(
+				this._messageBroker.publish(
 					new IssueOrderMessage({
 						order: new MoveInDirectionOrder({
 							direction: this.currentDirection,
 						}),
-						orderedUnitId: this.messageBroker.playerActor.playerUnitId,
+						orderedUnitId: this._messageBroker.playerActor.playerUnitId,
 					}),
 				);
 			}

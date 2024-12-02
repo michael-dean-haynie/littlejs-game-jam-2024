@@ -1,3 +1,4 @@
+import { type Vector2, vec2 } from "littlejsengine";
 import type { Actor } from "./actors/actor";
 import { EnemyActor } from "./actors/enemy-actor";
 import { PlayerActor } from "./actors/player-actor";
@@ -51,5 +52,12 @@ export class MessageBroker {
 			unitActors.find((actor) => actor.unitId === unitId) ??
 			yeet("UNEXPECTED_NULLISH_VALUE")
 		);
+	}
+
+	getUnitActorsByProx(point: Vector2, size: number): UnitActor[] {
+		const unitActors: UnitActor[] = this._actors.filter(
+			(actor) => actor instanceof UnitActor,
+		);
+		return unitActors.filter((actor) => actor.doesOverlap(point, size));
 	}
 }
