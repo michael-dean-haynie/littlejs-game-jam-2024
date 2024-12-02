@@ -2,18 +2,19 @@ import { keyIsDown, keyWasPressed, keyWasReleased } from "littlejsengine";
 import type { MessageBroker } from "../message-broker";
 import { IssueOrderMessage } from "../messages/issue-order-message";
 import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
+import { StopMovingOrder } from "../orders/stop-moving-order";
 import { yeet } from "../utilities/utilities";
 
 export class InputHelper {
 	constructor(private readonly messageBroker: MessageBroker) {
-		this.stack = ["none"];
+		this.stack = [];
 	}
 
 	private stack: Direction[];
 
 	/** the current direction based off of user input */
-	get currentDirection(): Direction {
-		return this.stack.at(-1) ?? yeet("UNEXPECTED_NULLISH_VALUE");
+	get currentDirection(): Direction | null {
+		return this.stack.at(-1) ?? null;
 	}
 
 	update(): void {
@@ -54,14 +55,23 @@ export class InputHelper {
 		}
 
 		if (this.currentDirection !== prevDirection) {
-			this.messageBroker.publish(
-				new IssueOrderMessage({
-					order: new MoveInDirectionOrder({
-						direction: this.currentDirection,
+			if (!this.currentDirection) {
+				this.messageBroker.publish(
+					new IssueOrderMessage({
+						order: new StopMovingOrder({}),
+						orderedUnitId: this.messageBroker.playerActor.playerUnitId,
 					}),
-					orderedUnitId: this.messageBroker.playerActor.playerUnitId,
-				}),
-			);
+				);
+			} else {
+				this.messageBroker.publish(
+					new IssueOrderMessage({
+						order: new MoveInDirectionOrder({
+							direction: this.currentDirection,
+						}),
+						orderedUnitId: this.messageBroker.playerActor.playerUnitId,
+					}),
+				);
+			}
 		}
 	}
 
@@ -73,7 +83,7 @@ export class InputHelper {
 	}
 }
 
-export const Directions = ["none", "up", "left", "down", "right"] as const;
+export const Directions = ["up", "left", "down", "right"] as const;
 export type Direction = (typeof Directions)[number];
 
 export function IsDirection(value: string | null): value is Direction {

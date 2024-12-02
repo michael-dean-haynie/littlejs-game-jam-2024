@@ -8,6 +8,7 @@ import type { Message } from "../messages/message";
 import { FollowUnitOrder } from "../orders/follow-unit-order";
 import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
 import type { Order } from "../orders/order";
+import { StopMovingOrder } from "../orders/stop-moving-order";
 import type { UnitType } from "../units/unit";
 import { Actor } from "./actor";
 
@@ -46,15 +47,14 @@ export class UnitActor extends Actor {
 		super.update();
 
 		// process order queue
-		let noActionYet = true;
-		while (this._orderQueue.length && noActionYet) {
+		if (this._orderQueue.length) {
+			// try to execute order
 			const order = this._orderQueue[0];
-			// TODO: wacky order param
-			if (order.hasCompleted(order)) {
+			this.executeOrder(order);
+
+			// if it completed, remove it from the queue
+			if (order.progress === "complete") {
 				this._orderQueue.shift();
-			} else {
-				this.executeOrder(order);
-				noActionYet = false;
 			}
 		}
 	}
@@ -73,9 +73,12 @@ export class UnitActor extends Actor {
 			if (order.direction === "right") {
 				this._engineObject.velocity = vec2(this.unitType.moveSpeed, 0);
 			}
-			if (order.direction === "none") {
-				this._engineObject.velocity = vec2(0, 0);
-			}
+			order.progress = "in progress";
+		}
+
+		if (order instanceof StopMovingOrder) {
+			this._engineObject.velocity = vec2(0, 0);
+			order.progress = "complete";
 		}
 
 		if (order instanceof FollowUnitOrder) {
@@ -93,6 +96,8 @@ export class UnitActor extends Actor {
 			this._engineObject.velocity = direction.normalize(
 				this.unitType.moveSpeed,
 			);
+
+			order.progress = "in progress";
 		}
 	}
 
@@ -100,6 +105,11 @@ export class UnitActor extends Actor {
 		if (IsIssueOrderMessage(message)) {
 			if (message.orderedUnitId === this.unitId) {
 				if (message.order instanceof MoveInDirectionOrder) {
+					this._orderQueue.length = 0; // empty queue whilst preserving reference
+					this._orderQueue.unshift(message.order);
+				}
+
+				if (message.order instanceof StopMovingOrder) {
 					this._orderQueue.length = 0; // empty queue whilst preserving reference
 					this._orderQueue.unshift(message.order);
 				}
