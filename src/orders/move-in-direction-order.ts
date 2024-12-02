@@ -1,6 +1,6 @@
 import type { UnitActor } from "../actors/unit-actor";
 import type { Direction } from "../helpers/input";
-import type { Order, OrderType } from "./order";
+import { type Order, type OrderType, orderNeverCompletes } from "./order";
 
 export class MoveInDirectionOrder implements Order {
 	constructor(args: Omit<MoveInDirectionOrder, "type">) {
@@ -10,4 +10,6 @@ export class MoveInDirectionOrder implements Order {
 
 	type: OrderType;
 	direction: Direction;
+
+	hasCompleted = orderNeverCompletes;
 }

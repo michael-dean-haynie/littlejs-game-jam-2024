@@ -59,7 +59,7 @@ export class InputHelper {
 					order: new MoveInDirectionOrder({
 						direction: this.currentDirection,
 					}),
-					targetUnitId: this.messageBroker.playerActor.playerUnitId,
+					orderedUnitId: this.messageBroker.playerActor.playerUnitId,
 				}),
 			);
 		}

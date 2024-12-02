@@ -9,7 +9,7 @@ const worldSize = vec2(100, 100);
 const centerOfWorld = worldSize.scale(0.5);
 const astarNodeSize = 1;
 const pathingHelper = new PathingHelper(worldSize, astarNodeSize);
-const messageBroker = new MessageBroker();
+const messageBroker = new MessageBroker(pathingHelper);
 const inputHelper = new InputHelper(messageBroker);
 
 let target: Target;

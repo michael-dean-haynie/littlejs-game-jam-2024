@@ -1,14 +1,20 @@
 import type { Actor } from "./actors/actor";
+import { EnemyActor } from "./actors/enemy-actor";
 import { PlayerActor } from "./actors/player-actor";
+import { UnitActor } from "./actors/unit-actor";
+import type { PathingHelper } from "./helpers/pathing";
 import type { Message } from "./messages/message";
 import { yeet } from "./utilities/utilities";
 
 export class MessageBroker {
-	constructor() {
+	constructor(public readonly pathingHelper: PathingHelper) {
 		this._actors = [];
 
 		// initialize player actor
 		const playerActor = new PlayerActor(this);
+
+		// initialize enemy actor
+		const enemyActor = new EnemyActor(this);
 	}
 
 	private readonly _actors: Actor[];
@@ -35,5 +41,15 @@ export class MessageBroker {
 		for (const actor of this._actors) {
 			actor.update();
 		}
+	}
+
+	getUnitActorById(unitId: string): UnitActor {
+		const unitActors: UnitActor[] = this._actors.filter(
+			(actor) => actor instanceof UnitActor,
+		);
+		return (
+			unitActors.find((actor) => actor.unitId === unitId) ??
+			yeet("UNEXPECTED_NULLISH_VALUE")
+		);
 	}
 }

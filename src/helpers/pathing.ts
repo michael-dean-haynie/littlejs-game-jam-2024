@@ -48,12 +48,12 @@ export class PathingHelper {
 		// console.log({ worldPath });
 
 		for (const wpNode of worldPath) {
-			debugRect(
-				wpNode,
-				vec2(this._astarNodeSize, this._astarNodeSize),
-				"#fff",
-				5,
-			);
+			// debugRect(
+			// 	wpNode,
+			// 	vec2(this._astarNodeSize, this._astarNodeSize),
+			// 	"#fff",
+			// 	5,
+			// );
 		}
 
 		return worldPath;

@@ -5,12 +5,12 @@ export class IssueOrderMessage implements Message {
 	constructor(args: Omit<IssueOrderMessage, "type">) {
 		this.type = "IssueOrderMessage";
 		this.order = args.order;
-		this.targetUnitId = args.targetUnitId;
+		this.orderedUnitId = args.orderedUnitId;
 	}
 
 	type: MessageType;
 	order: Order;
-	targetUnitId: string;
+	orderedUnitId: string;
 }
 
 export function IsIssueOrderMessage(

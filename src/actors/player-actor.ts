@@ -22,6 +22,7 @@ export class PlayerActor extends Actor {
 			new CreateUnitMessage({
 				unitType: UnitTypes.prey,
 				position: vec2(50, 50),
+				team: "player",
 			}),
 		);
 	}
@@ -34,8 +35,10 @@ export class PlayerActor extends Actor {
 
 	private handleCreateUnitMessage = (message: Message): void => {
 		if (IsCreateUnitMessage(message)) {
-			const unitActor = new UnitActor(this.messageBroker, message);
-			this._playerUnitId = unitActor.unitId;
+			if (message.team === "player") {
+				const unitActor = new UnitActor(this.messageBroker, message);
+				this._playerUnitId = unitActor.unitId;
+			}
 		}
 	};
 }
