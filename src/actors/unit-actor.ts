@@ -1,13 +1,20 @@
 import {
-	EngineObject,
+	type EngineObject,
 	type Vector2,
 	debugRect,
+	engineObjects,
+	engineObjectsCallback,
 	isOverlapping,
 	vec2,
 } from "littlejsengine";
 import { v4 } from "uuid";
+import { UnitEngineObject } from "../engine-objects/unit-engine-object";
 import type { MessageBroker } from "../message-broker";
 import type { CreateUnitMessage } from "../messages/create-unit-message";
+import {
+	ImpactUnitMessage,
+	IsImpactUnitMessage,
+} from "../messages/impact-unit-message";
 import {
 	IsIssueOrderMessage,
 	IssueOrderMessage,
@@ -21,6 +28,15 @@ import { StopMovingOrder } from "../orders/stop-moving-order";
 import type { UnitType } from "../units/unit";
 import { Actor } from "./actor";
 
+export const UnitMovementTypes = ["none", "self propelled", "impact"] as const;
+export type UnitMovementType = (typeof UnitMovementTypes)[number];
+
+export function IsUnitMovemmentType(
+	value: string | null,
+): value is UnitMovementType {
+	return UnitMovementTypes.includes(value as UnitMovementType);
+}
+
 export class UnitActor extends Actor {
 	constructor(
 		messageBroker: MessageBroker,
@@ -29,26 +45,31 @@ export class UnitActor extends Actor {
 		super(messageBroker);
 
 		// register message handlers
+		this.handlers.set("ImpactUnitMessage", this.handleImpactUnitMessage);
 		this.handlers.set("IssueOrderMessage", this.handleIssueOrderMessage);
 
 		this.unitId = v4();
 		this.unitType = createUnitActorMessage.unitType;
 		this._orderQueue = [];
 		this._facingDirection = 2;
+		this.currentMovementType = "none";
 
 		// create engineObject
-		this._engineObject = new EngineObject(
+		this._engineObject = new UnitEngineObject(
+			this.messageBroker,
+			this,
 			createUnitActorMessage.position,
-			vec2(1, 1),
+			vec2(this.unitType.size),
 			undefined,
 			undefined,
 			this.unitType.color,
 		);
-		this._engineObject.setCollision(); // turn collision on
+		this._engineObject.mass = this.unitType.mass;
 	}
 
 	readonly unitId: string;
 	readonly unitType: UnitType;
+	currentMovementType: UnitMovementType;
 
 	private _engineObject: EngineObject;
 	private _orderQueue: Order[];
@@ -79,15 +100,14 @@ export class UnitActor extends Actor {
 		);
 	}
 
-	applyForce(force: Vector2): void {
-		this.messageBroker.publish(
-			new IssueOrderMessage({
-				order: new StopMovingOrder(),
-				orderedUnitId: this.unitId,
-			}),
-		);
-		this._engineObject.applyAcceleration(force);
-	}
+	private handleImpactUnitMessage = (message: Message): void => {
+		if (IsImpactUnitMessage(message)) {
+			if (message.impactedUnitId === this.unitId) {
+				this.currentMovementType = "impact";
+				this._engineObject.applyForce(message.force);
+			}
+		}
+	};
 
 	private handleIssueOrderMessage = (message: Message): void => {
 		if (IsIssueOrderMessage(message)) {
@@ -116,59 +136,77 @@ export class UnitActor extends Actor {
 
 	private executeOrder(order: Order): void {
 		if (order instanceof MoveInDirectionOrder) {
-			if (order.direction === "up") {
-				this._engineObject.velocity = vec2(0, this.unitType.moveSpeed);
+			if (
+				this.currentMovementType !== "impact" ||
+				this._engineObject.velocity.length() < 0.01
+			) {
+				if (order.direction === "up") {
+					this._engineObject.velocity = vec2(0, this.unitType.moveSpeed);
+				}
+				if (order.direction === "left") {
+					this._engineObject.velocity = vec2(this.unitType.moveSpeed * -1, 0);
+				}
+				if (order.direction === "down") {
+					this._engineObject.velocity = vec2(0, this.unitType.moveSpeed * -1);
+				}
+				if (order.direction === "right") {
+					this._engineObject.velocity = vec2(this.unitType.moveSpeed, 0);
+				}
+				this._facingDirection = this._engineObject.velocity.direction();
+				this.currentMovementType = "self propelled";
+				order.progress = "in progress";
 			}
-			if (order.direction === "left") {
-				this._engineObject.velocity = vec2(this.unitType.moveSpeed * -1, 0);
-			}
-			if (order.direction === "down") {
-				this._engineObject.velocity = vec2(0, this.unitType.moveSpeed * -1);
-			}
-			if (order.direction === "right") {
-				this._engineObject.velocity = vec2(this.unitType.moveSpeed, 0);
-			}
-			this._facingDirection = this._engineObject.velocity.direction();
-			order.progress = "in progress";
 		}
 
 		if (order instanceof StopMovingOrder) {
 			this._engineObject.velocity = vec2(0, 0);
+			this.currentMovementType = "none";
 			order.progress = "complete";
 		}
 
 		if (order instanceof FollowUnitOrder) {
-			const targetUnitActor = this.messageBroker.getUnitActorById(
-				order.targetUnitId,
-			);
-			const targetUnitPos = targetUnitActor._engineObject.pos;
-			const path = this.messageBroker.pathingHelper.getPath(
-				this._engineObject.pos,
-				targetUnitPos,
-			);
+			if (
+				this.currentMovementType !== "impact" ||
+				this._engineObject.velocity.length() < 0.01
+			) {
+				const targetUnitActor = this.messageBroker.getUnitActorById(
+					order.targetUnitId,
+				);
+				const targetUnitPos = targetUnitActor._engineObject.pos;
+				const path = this.messageBroker.pathingHelper.getPath(
+					this._engineObject.pos,
+					targetUnitPos,
+				);
 
-			const node = path.length > 1 ? path[1] : path[0]; // skip first path node (cause it was rounded to snap to grid)
-			const direction = node.subtract(this._engineObject.pos);
-			this._engineObject.velocity = direction.normalize(
-				this.unitType.moveSpeed,
-			);
-			this._facingDirection = this._engineObject.velocity.direction();
+				const node = path.length > 1 ? path[1] : path[0]; // skip first path node (cause it was rounded to snap to grid)
+				const direction = node.subtract(this._engineObject.pos);
+				this._engineObject.velocity = direction.normalize(
+					this.unitType.moveSpeed,
+				);
 
-			order.progress = "in progress";
+				this._facingDirection = this._engineObject.velocity.direction();
+				this.currentMovementType = "self propelled";
+				order.progress = "in progress";
+			}
 		}
 
 		if (order instanceof AttackOrder) {
-			console.log("BANG");
 			const target = vec2()
 				.setDirection(this._facingDirection, this.unitType.size)
 				.add(this._engineObject.pos);
 
 			debugRect(target, vec2(1, 1));
 
-			const hitActors = this.messageBroker.getUnitActorsByProx(target, 1);
+			const hitActors = this.messageBroker
+				.getUnitActorsByProx(target, 1)
+				.filter((actor) => actor.unitId !== this.unitId);
 			for (const actor of hitActors) {
-				console.log("HIT");
-				actor.applyForce(vec2().setDirection(this._facingDirection, 5));
+				this.messageBroker.publish(
+					new ImpactUnitMessage({
+						force: vec2().setDirection(this._facingDirection, 5),
+						impactedUnitId: actor.unitId,
+					}),
+				);
 			}
 
 			order.progress = "complete";

@@ -1,4 +1,10 @@
-import { engineInit, setCameraPos, vec2 } from "littlejsengine";
+import {
+	engineInit,
+	setCameraPos,
+	setObjectDefaultDamping,
+	setObjectDefaultElasticity,
+	vec2,
+} from "littlejsengine";
 import type { Target } from "./engine-objects/target";
 import { InputHelper } from "./helpers/input";
 import { PathingHelper } from "./helpers/pathing";
@@ -17,6 +23,7 @@ let target: Target;
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
 	setCameraPos(centerOfWorld);
+	setObjectDefaultDamping(0.9);
 	// target = new Target(centerOfWorld, vec2(1, 1));
 }
 
