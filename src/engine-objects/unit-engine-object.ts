@@ -57,18 +57,9 @@ export class UnitEngineObject extends EngineObject {
 		);
 		// missing
 		drawRect(
-			this.pos.add(vec2(0 + (1 - hpDec) / 2, verticalOffset)),
+			this.pos.add(vec2(0.5 - (1 - hpDec) / 2, verticalOffset)),
 			vec2(1 - hpDec, barHeight),
 			rgb(1, 1, 1, 1),
 		);
-
-		if (this.unitActor.unitType === UnitTypes.pig) {
-			console.log({
-				rmPos: -0.5 + hpDec / 2,
-				rmSiz: hpDec,
-				msPos: 0 + (1 - hpDec) / 2,
-				msSiz: 1 - hpDec,
-			});
-		}
 	}
 }
