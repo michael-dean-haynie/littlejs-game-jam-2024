@@ -10,7 +10,12 @@ import {
 import { v4 } from "uuid";
 import { UnitEngineObject } from "../engine-objects/unit-engine-object";
 import type { MessageBroker } from "../message-broker";
+import {
+	AddWeaponToUnitMessage,
+	IsAddWeaponToUnitMessage,
+} from "../messages/add-weapon-to-unit-message";
 import type { CreateUnitMessage } from "../messages/create-unit-message";
+import { FireWeaponMessage } from "../messages/fire-weapon-message";
 import {
 	ImpactUnitMessage,
 	IsImpactUnitMessage,
@@ -20,13 +25,16 @@ import {
 	IssueOrderMessage,
 } from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
-import { AttackOrder } from "../orders/attack-order";
+import { AttackInDirectionOrder } from "../orders/attack-order";
+import { EquipWeaponOrder } from "../orders/equip-weapon-order";
 import { FollowUnitOrder } from "../orders/follow-unit-order";
 import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
 import type { Order } from "../orders/order";
 import { StopMovingOrder } from "../orders/stop-moving-order";
 import type { UnitType } from "../units/unit";
+import type { WeaponType } from "../weapons/weapon";
 import { Actor } from "./actor";
+import { WeaponActor } from "./weapon-actor";
 
 export const UnitMovementTypes = ["none", "self propelled", "impact"] as const;
 export type UnitMovementType = (typeof UnitMovementTypes)[number];
@@ -45,14 +53,29 @@ export class UnitActor extends Actor {
 		super(messageBroker);
 
 		// register message handlers
+		this.handlers.set(
+			"AddWeaponToUnitMessage",
+			this.handleAddWeaponToUnitMessage,
+		);
 		this.handlers.set("ImpactUnitMessage", this.handleImpactUnitMessage);
 		this.handlers.set("IssueOrderMessage", this.handleIssueOrderMessage);
 
 		this.unitId = v4();
 		this.unitType = createUnitActorMessage.unitType;
 		this._orderQueue = [];
-		this._facingDirection = 2;
+		this.facingDirection = 2;
 		this.currentMovementType = "none";
+		this.weaponActors = [];
+
+		// add default weapons
+		for (const weaponType of this.unitType.defaultWeapons) {
+			this.messageBroker.publish(
+				new AddWeaponToUnitMessage({
+					weaponType: weaponType,
+					unitId: this.unitId,
+				}),
+			);
+		}
 
 		// create engineObject
 		this._engineObject = new UnitEngineObject(
@@ -70,10 +93,16 @@ export class UnitActor extends Actor {
 	readonly unitId: string;
 	readonly unitType: UnitType;
 	currentMovementType: UnitMovementType;
+	weaponActors: WeaponActor[];
+	equippedWeaponActor?: WeaponActor;
+	facingDirection: number;
 
 	private _engineObject: EngineObject;
 	private _orderQueue: Order[];
-	private _facingDirection: number;
+
+	get pos(): Vector2 {
+		return this._engineObject.pos;
+	}
 
 	update(): void {
 		super.update();
@@ -99,6 +128,26 @@ export class UnitActor extends Actor {
 			vec2(this.unitType.size),
 		);
 	}
+
+	private handleAddWeaponToUnitMessage = (message: Message): void => {
+		if (IsAddWeaponToUnitMessage(message)) {
+			if (message.unitId === this.unitId) {
+				this.weaponActors.push(
+					new WeaponActor(message.weaponType, this, this.messageBroker),
+				);
+				if (!this.equippedWeaponActor) {
+					this.messageBroker.publish(
+						new IssueOrderMessage({
+							order: new EquipWeaponOrder({
+								weaponType: message.weaponType,
+							}),
+							orderedUnitId: this.unitId,
+						}),
+					);
+				}
+			}
+		}
+	};
 
 	private handleImpactUnitMessage = (message: Message): void => {
 		if (IsImpactUnitMessage(message)) {
@@ -127,7 +176,11 @@ export class UnitActor extends Actor {
 					this._orderQueue.unshift(message.order);
 				}
 
-				if (message.order instanceof AttackOrder) {
+				if (message.order instanceof AttackInDirectionOrder) {
+					this._orderQueue.unshift(message.order);
+				}
+
+				if (message.order instanceof EquipWeaponOrder) {
 					this._orderQueue.unshift(message.order);
 				}
 			}
@@ -152,7 +205,7 @@ export class UnitActor extends Actor {
 				if (order.direction === "right") {
 					this._engineObject.velocity = vec2(this.unitType.moveSpeed, 0);
 				}
-				this._facingDirection = this._engineObject.velocity.direction();
+				this.facingDirection = this._engineObject.velocity.direction();
 				this.currentMovementType = "self propelled";
 				order.progress = "in progress";
 			}
@@ -184,29 +237,28 @@ export class UnitActor extends Actor {
 					this.unitType.moveSpeed,
 				);
 
-				this._facingDirection = this._engineObject.velocity.direction();
+				this.facingDirection = this._engineObject.velocity.direction();
 				this.currentMovementType = "self propelled";
 				order.progress = "in progress";
 			}
 		}
 
-		if (order instanceof AttackOrder) {
-			const target = vec2()
-				.setDirection(this._facingDirection, this.unitType.size)
-				.add(this._engineObject.pos);
+		if (order instanceof EquipWeaponOrder) {
+			this.equippedWeaponActor = this.weaponActors.find(
+				(wa) => wa.weaponType === order.weaponType,
+			);
+			order.progress = "complete";
+		}
 
-			debugRect(target, vec2(1, 1));
-
-			const hitActors = this.messageBroker
-				.getUnitActorsByProx(target, 1)
-				.filter((actor) => actor.unitId !== this.unitId);
-			for (const actor of hitActors) {
+		if (order instanceof AttackInDirectionOrder) {
+			if (this.equippedWeaponActor) {
 				this.messageBroker.publish(
-					new ImpactUnitMessage({
-						force: vec2().setDirection(this._facingDirection, 5),
-						impactedUnitId: actor.unitId,
+					new FireWeaponMessage({
+						firingUnitId: this.unitId,
 					}),
 				);
+			} else {
+				throw new Error("no weapon is equipped");
 			}
 
 			order.progress = "complete";

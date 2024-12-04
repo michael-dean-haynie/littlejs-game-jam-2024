@@ -6,6 +6,8 @@ export const MessageTypes = [
 	"CreateUnitMessage",
 	"ImpactUnitMessage",
 	"IssueOrderMessage",
+	"AddWeaponToUnitMessage",
+	"FireWeaponMessage",
 ] as const;
 export type MessageType = (typeof MessageTypes)[number];
 

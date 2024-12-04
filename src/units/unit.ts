@@ -1,4 +1,9 @@
 import { type Color, rgb } from "littlejsengine";
+import {
+	type WeaponType,
+	WeaponTypeName,
+	WeaponTypes,
+} from "../weapons/weapon";
 
 export const UnitTypeNames = ["prey", "bunny", "pig"] as const;
 export type UnitTypeName = (typeof UnitTypeNames)[number];
@@ -13,6 +18,7 @@ export interface UnitType {
 	size: number;
 	mass: number;
 	color: Color;
+	defaultWeapons: WeaponType[];
 }
 export type UnitTypeMap = {
 	[K in UnitTypeName]: UnitType;
@@ -25,6 +31,7 @@ export const UnitTypes: UnitTypeMap = {
 		size: 1,
 		mass: 10,
 		color: rgb(0, 1, 0, 1), // green
+		defaultWeapons: [WeaponTypes.shotgun],
 	},
 	bunny: {
 		name: "bunny",
@@ -32,6 +39,7 @@ export const UnitTypes: UnitTypeMap = {
 		size: 0.25,
 		mass: 1,
 		color: rgb(1, 1, 1, 1), // white
+		defaultWeapons: [WeaponTypes.fists],
 	},
 	pig: {
 		name: "pig",
@@ -39,5 +47,6 @@ export const UnitTypes: UnitTypeMap = {
 		size: 0.5,
 		mass: 5,
 		color: rgb(255 / 255, 192 / 255, 203 / 255, 1), // pink?
+		defaultWeapons: [WeaponTypes.fists],
 	},
 } as const;

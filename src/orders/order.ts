@@ -7,9 +7,10 @@ export interface Order {
 
 export const OrderTypes = [
 	"MoveInDirectionOrder",
+	"AttackInDirectionOrder",
 	"StopMovingOrder",
 	"FollowUnitOrder",
-	"AttackOrder",
+	"EquipWeaponOrder",
 ] as const;
 export type OrderType = (typeof OrderTypes)[number];
 

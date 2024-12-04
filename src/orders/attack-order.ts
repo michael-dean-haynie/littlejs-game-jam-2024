@@ -1,8 +1,8 @@
 import type { Order, OrderProgress, OrderType } from "./order";
 
-export class AttackOrder implements Order {
-	constructor(args: Omit<AttackOrder, "type" | "progress"> = {}) {
-		this.type = "AttackOrder";
+export class AttackInDirectionOrder implements Order {
+	constructor(args: Omit<AttackInDirectionOrder, "type" | "progress"> = {}) {
+		this.type = "AttackInDirectionOrder";
 		this.progress = "pending";
 	}
 

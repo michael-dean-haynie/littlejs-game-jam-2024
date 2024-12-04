@@ -6,7 +6,7 @@ import {
 } from "littlejsengine";
 import type { MessageBroker } from "../message-broker";
 import { IssueOrderMessage } from "../messages/issue-order-message";
-import { AttackOrder } from "../orders/attack-order";
+import { AttackInDirectionOrder } from "../orders/attack-order";
 import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
 import { StopMovingOrder } from "../orders/stop-moving-order";
 
@@ -29,7 +29,7 @@ export class InputHelper {
 		if (mouseWasPressed(0)) {
 			this._messageBroker.publish(
 				new IssueOrderMessage({
-					order: new AttackOrder(),
+					order: new AttackInDirectionOrder(),
 					orderedUnitId: this._messageBroker.playerActor.playerUnitId,
 				}),
 			);
