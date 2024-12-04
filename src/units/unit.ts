@@ -51,6 +51,6 @@ export const UnitTypes: UnitTypeMap = {
 		mass: 5,
 		color: rgb(255 / 255, 192 / 255, 203 / 255, 1), // pink?
 		defaultWeapons: [WeaponTypes.fists],
-		hitpoints: 25,
+		hitpoints: 40,
 	},
 } as const;
