@@ -5,6 +5,7 @@ import {
 	IsCreateUnitMessage,
 } from "../messages/create-unit-message";
 import type { Message } from "../messages/message";
+import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
 import { UnitTypes } from "../units/unit";
 import { yeet } from "../utilities/utilities";
 import { Actor } from "./actor";
@@ -16,6 +17,7 @@ export class PlayerActor extends Actor {
 
 		// register message handlers
 		this.handlers.set("CreateUnitMessage", this.handleCreateUnitMessage);
+		this.handlers.set("UnitHasDiedMessage", this.handleUnitHasDiedMessage);
 
 		// create unit for player
 		this.messageBroker.publish(
@@ -39,6 +41,11 @@ export class PlayerActor extends Actor {
 				const unitActor = new UnitActor(this.messageBroker, message);
 				this._playerUnitId = unitActor.unitId;
 			}
+		}
+	};
+
+	private handleUnitHasDiedMessage = (message: Message): void => {
+		if (message instanceof UnitHasDiedMessage) {
 		}
 	};
 }

@@ -26,6 +26,8 @@ export abstract class Actor {
 		}
 	}
 
+	destroy(): void {}
+
 	protected handleMessage(message: Message): void {
 		const handler = this.handlers.get(message.type);
 		if (handler) {

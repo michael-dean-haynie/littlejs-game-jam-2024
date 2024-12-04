@@ -30,6 +30,6 @@ export const WeaponTypes: WeaponTypeMap = {
 	shotgun: {
 		name: "shotgun",
 		speed: 1,
-		damage: 1,
+		damage: 10,
 	},
 } as const;

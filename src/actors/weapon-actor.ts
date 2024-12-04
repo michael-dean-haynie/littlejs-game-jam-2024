@@ -3,6 +3,7 @@ import type { MessageBroker } from "../message-broker";
 import { IsFireWeaponMessage } from "../messages/fire-weapon-message";
 import { ImpactUnitMessage } from "../messages/impact-unit-message";
 import type { Message } from "../messages/message";
+import { DamageUnitMessage } from "../messages/take-damage-message";
 import type { WeaponType } from "../weapons/weapon";
 import { Actor } from "./actor";
 import type { UnitActor } from "./unit-actor";
@@ -23,6 +24,7 @@ export class WeaponActor extends Actor {
 		if (IsFireWeaponMessage(message)) {
 			if (message.firingUnitId === this.unitActor.unitId) {
 				if (this.unitActor.equippedWeaponActor === this) {
+					// find hit units
 					const target = vec2()
 						.setDirection(
 							this.unitActor.facingDirection,
@@ -36,10 +38,20 @@ export class WeaponActor extends Actor {
 						.getUnitActorsByProx(target, 1)
 						.filter((actor) => actor.unitId !== this.unitActor.unitId);
 					for (const actor of hitActors) {
+						// impace
 						this.messageBroker.publish(
 							new ImpactUnitMessage({
 								force: vec2().setDirection(this.unitActor.facingDirection, 5),
 								impactedUnitId: actor.unitId,
+							}),
+						);
+
+						// damage
+						this.messageBroker.publish(
+							new DamageUnitMessage({
+								damage: this.weaponType.damage,
+								damagedUnitId: actor.unitId,
+								damagingUnitId: message.firingUnitId,
 							}),
 						);
 					}

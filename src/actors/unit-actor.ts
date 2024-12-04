@@ -1,9 +1,6 @@
 import {
 	type EngineObject,
 	type Vector2,
-	debugRect,
-	engineObjects,
-	engineObjectsCallback,
 	isOverlapping,
 	vec2,
 } from "littlejsengine";
@@ -14,17 +11,16 @@ import {
 	AddWeaponToUnitMessage,
 	IsAddWeaponToUnitMessage,
 } from "../messages/add-weapon-to-unit-message";
-import type { CreateUnitMessage } from "../messages/create-unit-message";
+import type { CreateUnitMessage, Team } from "../messages/create-unit-message";
 import { FireWeaponMessage } from "../messages/fire-weapon-message";
-import {
-	ImpactUnitMessage,
-	IsImpactUnitMessage,
-} from "../messages/impact-unit-message";
+import { IsImpactUnitMessage } from "../messages/impact-unit-message";
 import {
 	IsIssueOrderMessage,
 	IssueOrderMessage,
 } from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
+import { DamageUnitMessage } from "../messages/take-damage-message";
+import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
 import { AttackInDirectionOrder } from "../orders/attack-order";
 import { EquipWeaponOrder } from "../orders/equip-weapon-order";
 import { FollowUnitOrder } from "../orders/follow-unit-order";
@@ -32,7 +28,6 @@ import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
 import type { Order } from "../orders/order";
 import { StopMovingOrder } from "../orders/stop-moving-order";
 import type { UnitType } from "../units/unit";
-import type { WeaponType } from "../weapons/weapon";
 import { Actor } from "./actor";
 import { WeaponActor } from "./weapon-actor";
 
@@ -58,14 +53,17 @@ export class UnitActor extends Actor {
 			this.handleAddWeaponToUnitMessage,
 		);
 		this.handlers.set("ImpactUnitMessage", this.handleImpactUnitMessage);
+		this.handlers.set("DamageUnitMessage", this.handleDamageUnitMessage);
 		this.handlers.set("IssueOrderMessage", this.handleIssueOrderMessage);
 
 		this.unitId = v4();
 		this.unitType = createUnitActorMessage.unitType;
+		this.team = createUnitActorMessage.team;
 		this._orderQueue = [];
 		this.facingDirection = 2;
 		this.currentMovementType = "none";
 		this.weaponActors = [];
+		this.hitpoints = this.unitType.hitpoints;
 
 		// add default weapons
 		for (const weaponType of this.unitType.defaultWeapons) {
@@ -92,16 +90,26 @@ export class UnitActor extends Actor {
 
 	readonly unitId: string;
 	readonly unitType: UnitType;
+	readonly team: Team;
 	currentMovementType: UnitMovementType;
 	weaponActors: WeaponActor[];
 	equippedWeaponActor?: WeaponActor;
 	facingDirection: number;
+	hitpoints: number;
 
 	private _engineObject: EngineObject;
 	private _orderQueue: Order[];
 
 	get pos(): Vector2 {
 		return this._engineObject.pos;
+	}
+
+	destroy(): void {
+		super.destroy();
+		this._engineObject.destroy();
+		for (const weaponActor of this.weaponActors) {
+			weaponActor.destroy();
+		}
 	}
 
 	update(): void {
@@ -154,6 +162,29 @@ export class UnitActor extends Actor {
 			if (message.impactedUnitId === this.unitId) {
 				this.currentMovementType = "impact";
 				this._engineObject.applyForce(message.force);
+			}
+		}
+	};
+
+	private handleDamageUnitMessage = (message: Message): void => {
+		if (message instanceof DamageUnitMessage) {
+			if (message.damagedUnitId === this.unitId) {
+				this.hitpoints -= message.damage;
+				if (this.hitpoints <= 0) {
+					const killingUnitActor = this.messageBroker.getUnitActorById(
+						message.damagingUnitId,
+					);
+					this.messageBroker.publish(
+						new UnitHasDiedMessage({
+							deadUnitId: this.unitId,
+							deadUnitType: this.unitType,
+							deadUnitTeam: this.team,
+							killingUnitId: killingUnitActor.unitId,
+							killingUnitType: killingUnitActor.unitType,
+							killingUnitTeam: killingUnitActor.team,
+						}),
+					);
+				}
 			}
 		}
 	};

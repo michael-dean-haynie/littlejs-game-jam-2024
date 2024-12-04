@@ -6,6 +6,7 @@ import {
 } from "../messages/create-unit-message";
 import { IssueOrderMessage } from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
+import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
 import { FollowUnitOrder } from "../orders/follow-unit-order";
 import { UnitTypes } from "../units/unit";
 import { Actor } from "./actor";
@@ -17,6 +18,7 @@ export class EnemyActor extends Actor {
 
 		// register message handlers
 		this.handlers.set("CreateUnitMessage", this.handleCreateUnitMessage);
+		this.handlers.set("UnitHasDiedMessage", this.handleUnitHasDiedMessage);
 
 		// create some units for now
 		this.messageBroker.publish(
@@ -55,6 +57,17 @@ export class EnemyActor extends Actor {
 						orderedUnitId: unitActor.unitId,
 					}),
 				);
+			}
+		}
+	};
+
+	private handleUnitHasDiedMessage = (message: Message): void => {
+		if (message instanceof UnitHasDiedMessage) {
+			if (message.deadUnitTeam === "enemy") {
+				//
+
+				// destroy actors
+				this.messageBroker.destroyUnitActor(message.deadUnitId);
 			}
 		}
 	};

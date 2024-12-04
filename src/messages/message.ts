@@ -4,7 +4,9 @@ export interface Message {
 
 export const MessageTypes = [
 	"CreateUnitMessage",
+	"UnitHasDiedMessage",
 	"ImpactUnitMessage",
+	"DamageUnitMessage",
 	"IssueOrderMessage",
 	"AddWeaponToUnitMessage",
 	"FireWeaponMessage",

@@ -60,4 +60,14 @@ export class MessageBroker {
 		);
 		return unitActors.filter((actor) => actor.doesOverlap(point, size));
 	}
+
+	destroyUnitActor(unitId: string): void {
+		const unitActorIndex = this._actors.findIndex(
+			(actor) => actor instanceof UnitActor && actor.unitId === unitId,
+		);
+		if (unitActorIndex !== -1) {
+			this._actors[unitActorIndex].destroy();
+			this._actors.splice(unitActorIndex, 1);
+		}
+	}
 }
