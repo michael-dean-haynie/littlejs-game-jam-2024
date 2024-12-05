@@ -4,6 +4,7 @@ import {
 	setCameraPos,
 	setObjectDefaultDamping,
 	setObjectDefaultElasticity,
+	setObjectDefaultFriction,
 	setShowSplashScreen,
 	tile,
 	vec2,
@@ -31,6 +32,8 @@ let target: Target;
 function gameInit() {
 	setCameraPos(centerOfWorld);
 	setObjectDefaultDamping(0.9);
+	// setObjectDefaultFriction(0);
+	// setObjectDefaultElasticity(1);
 
 	// TODO: remove
 	const mapEdge1 = new PlayerObstacleEngineObject(vec2(60, 40), vec2(1, 1));
