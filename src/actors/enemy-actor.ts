@@ -24,21 +24,28 @@ export class EnemyActor extends Actor {
 		this.messageBroker.publish(
 			new CreateUnitMessage({
 				unitType: UnitTypes.rabbit,
-				position: vec2(40, 40),
+				position: vec2(10, 5),
 				team: "enemy",
 			}),
 		);
 		this.messageBroker.publish(
 			new CreateUnitMessage({
 				unitType: UnitTypes.rabbit,
-				position: vec2(60, 60),
+				position: vec2(10, 10),
 				team: "enemy",
 			}),
 		);
 		this.messageBroker.publish(
 			new CreateUnitMessage({
 				unitType: UnitTypes.pig,
-				position: vec2(40, 60),
+				position: vec2(30, 5),
+				team: "enemy",
+			}),
+		);
+		this.messageBroker.publish(
+			new CreateUnitMessage({
+				unitType: UnitTypes.pig,
+				position: vec2(30, 10),
 				team: "enemy",
 			}),
 		);

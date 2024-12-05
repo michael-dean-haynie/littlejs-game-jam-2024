@@ -23,7 +23,7 @@ export class PlayerActor extends Actor {
 		this.messageBroker.publish(
 			new CreateUnitMessage({
 				unitType: UnitTypes.prey,
-				position: vec2(50, 50),
+				position: messageBroker.pathingHelper.worldSize.scale(0.5),
 				team: "player",
 			}),
 		);

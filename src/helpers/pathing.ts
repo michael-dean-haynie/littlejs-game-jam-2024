@@ -32,7 +32,7 @@ export function coordsToVec2(
 
 export class PathingHelper {
 	constructor(
-		private readonly _worldSize: Vector2,
+		public readonly worldSize: Vector2,
 		private readonly _astarNodeSize: number,
 	) {}
 
@@ -43,8 +43,8 @@ export class PathingHelper {
 	): Vector2[] {
 		// define grid
 		const grid = new Grid({
-			col: this._worldSize.x / this._astarNodeSize,
-			row: this._worldSize.y / this._astarNodeSize,
+			col: this.worldSize.x / this._astarNodeSize,
+			row: this.worldSize.y / this._astarNodeSize,
 		});
 
 		// add obstacles to grid
@@ -66,11 +66,11 @@ export class PathingHelper {
 							this._astarNodeSize,
 						);
 						grid.set(astarPosVector, "value", 1);
-						debugRect(
-							coordsToVec2(astarPosVector, this._astarNodeSize),
-							vec2(this._astarNodeSize, this._astarNodeSize),
-							"#FFA500",
-						);
+						// debugRect(
+						// 	coordsToVec2(astarPosVector, this._astarNodeSize),
+						// 	vec2(this._astarNodeSize, this._astarNodeSize),
+						// 	"#FFA500",
+						// );
 					}
 				}
 			}
@@ -89,7 +89,7 @@ export class PathingHelper {
 		);
 
 		for (const wpNode of worldPath) {
-			debugRect(wpNode, vec2(this._astarNodeSize, this._astarNodeSize), "#fff");
+			// debugRect(wpNode, vec2(this._astarNodeSize, this._astarNodeSize), "#fff");
 		}
 
 		return worldPath;
