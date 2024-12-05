@@ -224,17 +224,30 @@ export class UnitActor extends Actor {
 				this.currentMovementType !== "impact" ||
 				this._engineObject.velocity.length() < 0.01
 			) {
+				const ms = this.unitType.moveSpeed;
 				if (order.direction === "up") {
-					this._engineObject.velocity = vec2(0, this.unitType.moveSpeed);
+					this._engineObject.velocity = vec2(0, 1).normalize(ms);
 				}
 				if (order.direction === "left") {
-					this._engineObject.velocity = vec2(this.unitType.moveSpeed * -1, 0);
+					this._engineObject.velocity = vec2(-1, 0).normalize(ms);
 				}
 				if (order.direction === "down") {
-					this._engineObject.velocity = vec2(0, this.unitType.moveSpeed * -1);
+					this._engineObject.velocity = vec2(0, -1).normalize(ms);
 				}
 				if (order.direction === "right") {
-					this._engineObject.velocity = vec2(this.unitType.moveSpeed, 0);
+					this._engineObject.velocity = vec2(1, 0).normalize(ms);
+				}
+				if (order.direction === "up left") {
+					this._engineObject.velocity = vec2(-1, 1).normalize(ms);
+				}
+				if (order.direction === "down left") {
+					this._engineObject.velocity = vec2(-1, -1).normalize(ms);
+				}
+				if (order.direction === "up right") {
+					this._engineObject.velocity = vec2(1, 1).normalize(ms);
+				}
+				if (order.direction === "down right") {
+					this._engineObject.velocity = vec2(1, -1).normalize(ms);
 				}
 				this.facingDirection = this._engineObject.velocity.direction();
 				this.currentMovementType = "self propelled";

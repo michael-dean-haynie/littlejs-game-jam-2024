@@ -14,6 +14,8 @@ import {
 	tile,
 	vec2,
 } from "littlejsengine";
+import PerlinSimplex from "perlin-simplex";
+import { createNoise2D } from "simplex-noise";
 import { ObstacleEngineObject } from "./engine-objects/obstacle-engine-object";
 import { PlayerObstacleEngineObject } from "./engine-objects/player-obstacle-engine-object";
 import type { Target } from "./engine-objects/target";
@@ -83,6 +85,18 @@ function gameInit() {
 	// const obstacle6 = new ObstacleEngineObject(vec2(45, 38), vec2(1, 1));
 	// const obstacle7 = new ObstacleEngineObject(vec2(44, 38), vec2(1, 1));
 	// const obstacle8 = new ObstacleEngineObject(vec2(43, 38), vec2(1, 1));
+
+	// TRYING OUT SIMPLEX NOISE
+	const noise2d = createNoise2D();
+	for (let x = 0; x < worldSize.x; x++) {
+		for (let y = 0; y < worldSize.y; y++) {
+			// console.log(`(${x},${y}): ${noise2d(x, y)}`);
+			const value = noise2d(x, y);
+			if (value > 0.75) {
+				const obstacle = new ObstacleEngineObject(vec2(x, y), vec2(1, 1));
+			}
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -28,7 +28,7 @@ export type UnitTypeMap = {
 export const UnitTypes: UnitTypeMap = {
 	prey: {
 		name: "prey",
-		moveSpeed: 0.3,
+		moveSpeed: 0.1,
 		size: 1,
 		mass: 10,
 		color: rgb(0, 1, 0, 1), // green
@@ -37,7 +37,7 @@ export const UnitTypes: UnitTypeMap = {
 	},
 	rabbit: {
 		name: "rabbit",
-		moveSpeed: 0.2,
+		moveSpeed: 0.05,
 		size: 1,
 		mass: 1,
 		color: rgb(1, 1, 1, 1), // white
@@ -46,7 +46,7 @@ export const UnitTypes: UnitTypeMap = {
 	},
 	pig: {
 		name: "pig",
-		moveSpeed: 0.1,
+		moveSpeed: 0.025,
 		size: 1,
 		mass: 5,
 		color: rgb(255 / 255, 192 / 255, 203 / 255, 1), // pink?
