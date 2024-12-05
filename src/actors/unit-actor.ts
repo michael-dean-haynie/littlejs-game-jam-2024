@@ -97,7 +97,7 @@ export class UnitActor extends Actor {
 	facingDirection: number;
 	hitpoints: number;
 
-	private _engineObject: EngineObject;
+	private _engineObject: UnitEngineObject;
 	private _orderQueue: Order[];
 
 	get pos(): Vector2 {
@@ -260,6 +260,7 @@ export class UnitActor extends Actor {
 				const path = this.messageBroker.pathingHelper.getPath(
 					this._engineObject.pos,
 					targetUnitPos,
+					this._engineObject,
 				);
 
 				const node = path.length > 1 ? path[1] : path[0]; // skip first path node (cause it was rounded to snap to grid)

@@ -28,7 +28,6 @@ export class EnemyActor extends Actor {
 				team: "enemy",
 			}),
 		);
-
 		this.messageBroker.publish(
 			new CreateUnitMessage({
 				unitType: UnitTypes.rabbit,
