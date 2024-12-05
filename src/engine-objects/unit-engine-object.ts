@@ -1,9 +1,11 @@
 import {
 	EngineObject,
 	drawRect,
+	drawText,
 	drawTile,
 	randColor,
 	rgb,
+	tile,
 	vec2,
 } from "littlejsengine";
 import type { UnitActor } from "../actors/unit-actor";
@@ -43,23 +45,27 @@ export class UnitEngineObject extends EngineObject {
 	render(): void {
 		// unit
 		drawTile(this.pos, this.size, undefined, this.color);
+		// drawTile(this.pos, this.size, tile(1, vec2(32, 16)));
 
-		// // health bar
-		const hpDec = this.unitActor.hitpoints / this.unitActor.unitType.hitpoints; // 0-1
+		// unit type name
+		drawText(this.unitActor.unitType.name, this.pos, 0.3, rgb(0, 0, 0, 1));
+
+		// health bar
+		const hpDec = this.unitActor.hitpoints / this.unitActor.unitType.hitpoints; // 0-1 (decimal percentage)
 		const verticalOffset = this.size.y / 2 + 0.5;
-		const barHeight = 0.25;
+		const barHeight = 0.125;
 
 		// remaining
 		drawRect(
 			this.pos.add(vec2(-0.5 + hpDec / 2, verticalOffset)),
 			vec2(hpDec, barHeight),
-			rgb(1, 0, 0, 1),
+			rgb(1, 0, 0, 1), // red
 		);
 		// missing
 		drawRect(
 			this.pos.add(vec2(0.5 - (1 - hpDec) / 2, verticalOffset)),
 			vec2(1 - hpDec, barHeight),
-			rgb(1, 1, 1, 1),
+			rgb(1, 1, 1, 1), // white
 		);
 	}
 }

@@ -23,7 +23,7 @@ export class EnemyActor extends Actor {
 		// create some units for now
 		this.messageBroker.publish(
 			new CreateUnitMessage({
-				unitType: UnitTypes.bunny,
+				unitType: UnitTypes.rabbit,
 				position: vec2(40, 40),
 				team: "enemy",
 			}),
@@ -31,7 +31,7 @@ export class EnemyActor extends Actor {
 
 		this.messageBroker.publish(
 			new CreateUnitMessage({
-				unitType: UnitTypes.bunny,
+				unitType: UnitTypes.rabbit,
 				position: vec2(60, 60),
 				team: "enemy",
 			}),

@@ -5,7 +5,7 @@ import {
 	WeaponTypes,
 } from "../weapons/weapon";
 
-export const UnitTypeNames = ["prey", "bunny", "pig"] as const;
+export const UnitTypeNames = ["prey", "rabbit", "pig"] as const;
 export type UnitTypeName = (typeof UnitTypeNames)[number];
 
 export function IsUnitTypeName(value: string | null): value is UnitTypeName {
@@ -35,10 +35,10 @@ export const UnitTypes: UnitTypeMap = {
 		defaultWeapons: [WeaponTypes.shotgun],
 		hitpoints: 100,
 	},
-	bunny: {
-		name: "bunny",
+	rabbit: {
+		name: "rabbit",
 		moveSpeed: 0.2,
-		size: 0.25,
+		size: 1,
 		mass: 1,
 		color: rgb(1, 1, 1, 1), // white
 		defaultWeapons: [WeaponTypes.fists],
@@ -47,7 +47,7 @@ export const UnitTypes: UnitTypeMap = {
 	pig: {
 		name: "pig",
 		moveSpeed: 0.1,
-		size: 0.5,
+		size: 1,
 		mass: 5,
 		color: rgb(255 / 255, 192 / 255, 203 / 255, 1), // pink?
 		defaultWeapons: [WeaponTypes.fists],

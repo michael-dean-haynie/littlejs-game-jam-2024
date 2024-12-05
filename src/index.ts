@@ -1,14 +1,19 @@
 import {
+	drawTile,
 	engineInit,
 	setCameraPos,
 	setObjectDefaultDamping,
 	setObjectDefaultElasticity,
+	setShowSplashScreen,
+	tile,
 	vec2,
 } from "littlejsengine";
 import type { Target } from "./engine-objects/target";
 import { InputHelper } from "./helpers/input";
 import { PathingHelper } from "./helpers/pathing";
 import { MessageBroker } from "./message-broker";
+
+setShowSplashScreen(true);
 
 // globals
 const worldSize = vec2(100, 100);
@@ -29,23 +34,6 @@ function gameInit() {
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameUpdate() {
-	// // create runner
-	// if (mouseWasPressed(0)) {
-	// 	const runner = new Runner(mousePos, vec2(1, 1));
-	// 	const path = pathingHelper.getPath(runner.pos, target.pos);
-	// 	for (const engineObject of engineObjects) {
-	// 		// console.log(engineObject instanceof EngineObject);
-	// 	}
-	// }
-
-	// // create target
-	// if (mouseWasPressed(2)) {
-	// 	if (target) {
-	// 		target.destroy();
-	// 	}
-	// 	target = new Target(mousePos, vec2(1, 1));
-	// }
-
 	// update input
 	inputHelper.update();
 
@@ -64,4 +52,6 @@ function gameRenderPost() {}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Startup LittleJS Engine
-engineInit(gameInit, gameUpdate, gameUpdatePost, gameRender, gameRenderPost);
+engineInit(gameInit, gameUpdate, gameUpdatePost, gameRender, gameRenderPost, [
+	"tiles.png",
+]);
