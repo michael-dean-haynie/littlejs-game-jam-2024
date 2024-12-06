@@ -27,8 +27,10 @@ export class UnitEngineObject extends EngineObject {
 		// make sure enemies impct eachother
 		if (
 			object instanceof UnitEngineObject &&
-			object.unitActor.unitType !== UnitTypes.prey
+			object.unitActor.unitType !== UnitTypes.prey &&
+			this.unitActor.unitType !== UnitTypes.prey
 		) {
+			console.log(object);
 			if (object.unitActor.currentMovementType === "impact") {
 				this._messageBroker.publish(
 					new ImpactUnitMessage({
