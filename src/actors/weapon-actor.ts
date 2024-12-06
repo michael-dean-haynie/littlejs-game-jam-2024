@@ -26,10 +26,7 @@ export class WeaponActor extends Actor {
 				if (this.unitActor.equippedWeaponActor === this) {
 					// find hit units
 					const target = vec2()
-						.setDirection(
-							this.unitActor.facingDirection,
-							this.unitActor.unitType.size,
-						)
+						.setAngle(this.unitActor.facingAngle, this.unitActor.unitType.size)
 						.add(this.unitActor.pos);
 
 					debugRect(target, vec2(1, 1));
@@ -41,7 +38,7 @@ export class WeaponActor extends Actor {
 						// impace
 						this.messageBroker.publish(
 							new ImpactUnitMessage({
-								force: vec2().setDirection(this.unitActor.facingDirection, 5),
+								force: vec2().setAngle(this.unitActor.facingAngle, 5),
 								impactedUnitId: actor.unitId,
 							}),
 						);

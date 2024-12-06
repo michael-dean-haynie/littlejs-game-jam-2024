@@ -1,5 +1,6 @@
 import {
 	type EngineObject,
+	PI,
 	type Vector2,
 	isOverlapping,
 	vec2,
@@ -60,7 +61,7 @@ export class UnitActor extends Actor {
 		this.unitType = createUnitActorMessage.unitType;
 		this.team = createUnitActorMessage.team;
 		this._orderQueue = [];
-		this.facingDirection = 2;
+		this.facingAngle = PI;
 		this.currentMovementType = "none";
 		this.weaponActors = [];
 		this.hitpoints = this.unitType.hitpoints;
@@ -94,7 +95,7 @@ export class UnitActor extends Actor {
 	currentMovementType: UnitMovementType;
 	weaponActors: WeaponActor[];
 	equippedWeaponActor?: WeaponActor;
-	facingDirection: number;
+	facingAngle: number;
 	hitpoints: number;
 
 	private _engineObject: UnitEngineObject;
@@ -249,7 +250,7 @@ export class UnitActor extends Actor {
 				if (order.direction === "down right") {
 					this._engineObject.velocity = vec2(1, -1).normalize(ms);
 				}
-				this.facingDirection = this._engineObject.velocity.direction();
+				this.facingAngle = this._engineObject.velocity.angle();
 				this.currentMovementType = "self propelled";
 				order.progress = "in progress";
 			}
@@ -282,7 +283,7 @@ export class UnitActor extends Actor {
 					this.unitType.moveSpeed,
 				);
 
-				this.facingDirection = this._engineObject.velocity.direction();
+				this.facingAngle = this._engineObject.velocity.angle();
 				this.currentMovementType = "self propelled";
 				order.progress = "in progress";
 			}
