@@ -1,20 +1,8 @@
 import type { Order } from "../orders/order";
-import type { Message, MessageType } from "./message";
+import { Message } from "./message";
 
-export class IssueOrderMessage implements Message {
-	constructor(args: Omit<IssueOrderMessage, "type">) {
-		this.type = "IssueOrderMessage";
-		this.order = args.order;
-		this.orderedUnitId = args.orderedUnitId;
+export class IssueOrderMessage extends Message {
+	constructor(public readonly order: Order) {
+		super();
 	}
-
-	type: MessageType;
-	order: Order;
-	orderedUnitId: string;
-}
-
-export function IsIssueOrderMessage(
-	value: Message | null,
-): value is IssueOrderMessage {
-	return value?.type === "IssueOrderMessage";
 }

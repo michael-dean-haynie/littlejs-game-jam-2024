@@ -3,14 +3,12 @@ import {
 	drawRect,
 	drawText,
 	drawTile,
-	randColor,
 	rgb,
-	tile,
 	vec2,
 } from "littlejsengine";
-import type { UnitActor } from "../actors/unit-actor";
-import type { MessageBroker } from "../message-broker";
+import { UnitActor } from "../actors/unit-actor";
 import { ImpactUnitMessage } from "../messages/impact-unit-message";
+import type { MessageBroker } from "../messages/message-broker";
 import { UnitTypes } from "../units/unit";
 
 export class UnitEngineObject extends EngineObject {
@@ -30,13 +28,12 @@ export class UnitEngineObject extends EngineObject {
 			object.unitActor.unitType !== UnitTypes.prey &&
 			this.unitActor.unitType !== UnitTypes.prey
 		) {
-			console.log(object);
-			if (object.unitActor.currentMovementType === "impact") {
-				this._messageBroker.publish(
-					new ImpactUnitMessage({
-						force: vec2().scale(0), // just need to flag as impacted
-						impactedUnitId: this.unitActor.unitId,
-					}),
+			if (object.unitActor.flags.impacted) {
+				this._messageBroker.publishMessage(
+					new ImpactUnitMessage(
+						vec2().scale(0), // just need to flag as impacted
+					),
+					{ actorType: UnitActor, actorIds: [this.unitActor.actorId] },
 				);
 			}
 		}

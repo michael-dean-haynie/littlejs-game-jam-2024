@@ -7,36 +7,25 @@ import {
 } from "littlejsengine";
 import { IsPathingAwareEngineObject } from "../engine-objects/pathing-aware-engine-object";
 import type { UnitEngineObject } from "../engine-objects/unit-engine-object";
+import type { Message } from "../messages/message";
 import { roundToNearest, yeet } from "../utilities/utilities";
+import { Actor } from "./actor";
 
 export type AstarCoords = [x: number, y: number];
 
-/** converts a littlejs world Vector2 into Astar coordinates */
-export function vec2ToCoords(vec: Vector2, astarNodeSize: number): AstarCoords {
-	const xCoord = roundToNearest(vec.x, astarNodeSize) / astarNodeSize;
-	const yCoord = roundToNearest(vec.y, astarNodeSize) / astarNodeSize;
-	return [xCoord, yCoord];
-}
-
-/** converts Astar coordinates into a littlejs world Vector2 */
-export function coordsToVec2(
-	coords: AstarCoords,
-	astarNodeSize: number,
-): Vector2 {
-	const [xCoord, yCoord] = coords;
-	const x = xCoord * astarNodeSize;
-	const y = yCoord * astarNodeSize;
-	return vec2(x, y);
-}
-
-export class PathingHelper {
+export class PathingActor extends Actor {
 	constructor(
 		public readonly worldSize: Vector2,
 		public readonly arenaSize: Vector2,
 		public readonly spawnAreaSize: number,
 		public readonly worldCenter: Vector2,
 		private readonly _astarNodeSize: number,
-	) {}
+		...params: ConstructorParameters<typeof Actor>
+	) {
+		super(...params);
+		this.actorDirectory.registerActorAlias("pathingActor", this.actorId);
+	}
+	protected handleMessage<T extends Message>(message: T): void {}
 
 	getPath(
 		origin: Vector2,
@@ -64,7 +53,7 @@ export class PathingHelper {
 			for (let xOffset = startX; xOffset < eo.size.x; xOffset += step) {
 				for (let yOffset = startY; yOffset < eo.size.y; yOffset += step) {
 					const worldPos = eo.pos.add(vec2(xOffset, yOffset));
-					const coords = vec2ToCoords(worldPos, this._astarNodeSize);
+					const coords = this.vec2ToCoords(worldPos, this._astarNodeSize);
 					if (
 						coords[0] < 0 ||
 						coords[0] >= gridColumns ||
@@ -74,7 +63,7 @@ export class PathingHelper {
 						continue; // don't try to add obstacles outside the grid limits - duh.
 					}
 
-					const worldPosOfNearestCoords = coordsToVec2(
+					const worldPosOfNearestCoords = this.coordsToVec2(
 						coords,
 						this._astarNodeSize,
 					);
@@ -91,12 +80,12 @@ export class PathingHelper {
 		const astar = new Astar(grid);
 		const astarPath =
 			astar.search(
-				vec2ToCoords(origin, this._astarNodeSize),
-				vec2ToCoords(destination, this._astarNodeSize),
+				this.vec2ToCoords(origin, this._astarNodeSize),
+				this.vec2ToCoords(destination, this._astarNodeSize),
 			) ?? yeet("UNEXPECTED_NULLISH_VALUE");
 
 		const worldPath = astarPath.map((aspNode) =>
-			coordsToVec2(aspNode, this._astarNodeSize),
+			this.coordsToVec2(aspNode, this._astarNodeSize),
 		);
 
 		for (const wpNode of worldPath) {
@@ -104,5 +93,20 @@ export class PathingHelper {
 		}
 
 		return worldPath;
+	}
+
+	/** converts a littlejs world Vector2 into Astar coordinates */
+	private vec2ToCoords(vec: Vector2, astarNodeSize: number): AstarCoords {
+		const xCoord = roundToNearest(vec.x, astarNodeSize) / astarNodeSize;
+		const yCoord = roundToNearest(vec.y, astarNodeSize) / astarNodeSize;
+		return [xCoord, yCoord];
+	}
+
+	/** converts Astar coordinates into a littlejs world Vector2 */
+	private coordsToVec2(coords: AstarCoords, astarNodeSize: number): Vector2 {
+		const [xCoord, yCoord] = coords;
+		const x = xCoord * astarNodeSize;
+		const y = yCoord * astarNodeSize;
+		return vec2(x, y);
 	}
 }

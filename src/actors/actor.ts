@@ -1,37 +1,43 @@
-import type { MessageBroker } from "../message-broker";
-import type { Message, MessageType } from "../messages/message";
-
-export type Handler = (message: Message) => unknown;
+import { v4 } from "uuid";
+import type { Message } from "../messages/message";
+import type { MessageBroker } from "../messages/message-broker";
+import type { ActorDirectory } from "./actor-directory";
 
 export abstract class Actor {
-	constructor(protected readonly messageBroker: MessageBroker) {
-		this.messageBroker.register(this);
-		this.messages = [];
-		this.handlers = new Map<MessageType, Handler>();
+	constructor(
+		protected readonly actorDirectory: ActorDirectory,
+		protected readonly messageBroker: MessageBroker,
+	) {
+		this._messages = [];
+		this.actorId = v4();
+		this.actorDirectory.registerActor(this);
+		this.destroyed = false;
 	}
 
-	protected readonly messages: Message[];
-	protected readonly handlers: Map<MessageType, Handler>;
+	readonly actorId: string;
+	protected destroyed: boolean;
+	private readonly _messages: Message[];
 
-	receive(message: Message): void {
-		this.messages.push(message);
+	destroy(): void {
+		this.actorDirectory.unregisterActorById(this.actorId);
+		this.destroyed = true;
+	}
+
+	receiveMessage<T extends Message>(message: T): void {
+		this._messages.push(message);
 	}
 
 	update(): void {
-		while (this.messages.length > 0) {
-			const message = this.messages.shift();
+		while (this._messages.length > 0) {
+			const message = this._messages.shift();
 			if (message) {
+				if (this.destroyed) {
+					break;
+				}
 				this.handleMessage(message);
 			}
 		}
 	}
 
-	destroy(): void {}
-
-	protected handleMessage(message: Message): void {
-		const handler = this.handlers.get(message.type);
-		if (handler) {
-			handler(message);
-		}
-	}
+	protected abstract handleMessage<T extends Message>(message: T): void;
 }

@@ -1,30 +1,15 @@
 import type { Vector2 } from "littlejsengine";
+import type { Team } from "../actors/player-actor";
 import { type UnitType, UnitTypes } from "../units/unit";
-import type { Message, MessageType } from "./message";
+import { Message } from "./message";
 
-export const Teams = ["player", "enemy"] as const;
-export type Team = (typeof Teams)[number];
-
-export function IsTeam(value: string | null): value is Team {
-	return Teams.includes(value as Team);
-}
-
-export class CreateUnitMessage implements Message {
-	constructor(args: Omit<CreateUnitMessage, "type">) {
-		this.type = "CreateUnitMessage";
-		this.unitType = args?.unitType;
-		this.position = args?.position;
-		this.team = args?.team;
+export class CreateUnitMessage extends Message {
+	constructor(
+		public readonly unitType: UnitType,
+		public readonly position: Vector2,
+		public readonly team: Team,
+		...params: ConstructorParameters<typeof Message>
+	) {
+		super(...params);
 	}
-
-	type: MessageType;
-	unitType: UnitType;
-	position: Vector2;
-	team: Team;
-}
-
-export function IsCreateUnitMessage(
-	value: Message | null,
-): value is CreateUnitMessage {
-	return value?.type === "CreateUnitMessage";
 }

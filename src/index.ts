@@ -9,12 +9,16 @@ import {
 	vec2,
 } from "littlejsengine";
 import { createNoise2D } from "simplex-noise";
+import { ActorDirectory } from "./actors/actor-directory";
+import { EnemyActor } from "./actors/enemy-actor";
+import { InputActor } from "./actors/input-actor";
+import { PathingActor } from "./actors/pathing-actor";
+import { PlayerActor } from "./actors/player-actor";
+import { UnitActor } from "./actors/unit-actor";
+import { WeaponActor } from "./actors/weapon-actor";
 import { ObstacleEngineObject } from "./engine-objects/obstacle-engine-object";
 import { PlayerObstacleEngineObject } from "./engine-objects/player-obstacle-engine-object";
-import type { Target } from "./engine-objects/target";
-import { InputHelper } from "./helpers/input";
-import { PathingHelper } from "./helpers/pathing";
-import { MessageBroker } from "./message-broker";
+import { MessageBroker } from "./messages/message-broker";
 
 setShowSplashScreen(true);
 
@@ -25,9 +29,12 @@ let arenaSize: Vector2;
 let spawnAreaSize: number;
 let worldSize: Vector2;
 let worldCenter: Vector2;
-let pathingHelper: PathingHelper;
+let pathingActor: PathingActor;
+let actorDirectory: ActorDirectory;
 let messageBroker: MessageBroker;
-let inputHelper: InputHelper;
+let inputActor: InputActor;
+let playerActor: PlayerActor;
+let enemyActor: EnemyActor;
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
@@ -37,15 +44,22 @@ function gameInit() {
 	const worldSizeY = Math.ceil(arenaSize.y + spawnAreaSize * 2);
 	worldSize = vec2(worldSizeX, worldSizeY);
 	worldCenter = worldSize.scale(0.5);
-	pathingHelper = new PathingHelper(
+
+	actorDirectory = new ActorDirectory();
+	// TODO: for debugging - remove
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	(window as any).actorDirectory = actorDirectory;
+	messageBroker = new MessageBroker(actorDirectory);
+	pathingActor = new PathingActor(
 		worldSize,
 		arenaSize,
 		spawnAreaSize,
 		worldCenter,
 		astarNodeSize,
+		actorDirectory,
+		messageBroker,
 	);
-	messageBroker = new MessageBroker(pathingHelper);
-	inputHelper = new InputHelper(messageBroker);
+	inputActor = new InputActor(actorDirectory, messageBroker);
 
 	setCanvasFixedSize(canvasSize);
 	setCameraPos(worldCenter);
@@ -105,15 +119,31 @@ function gameInit() {
 			}
 		}
 	}
+
+	playerActor = new PlayerActor(actorDirectory, messageBroker);
+	enemyActor = new EnemyActor(actorDirectory, messageBroker);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameUpdate() {
-	// update input
-	inputHelper.update();
+	inputActor.update(); // has special update() impl
+	playerActor.update();
+	enemyActor.update();
+	// pathingActor doesn't receive any messages
 
-	// update actors
-	messageBroker.update();
+	// update units
+	for (const actor of actorDirectory.actors) {
+		if (actor instanceof UnitActor) {
+			actor.update();
+		}
+	}
+
+	// update weapons
+	for (const actor of actorDirectory.actors) {
+		if (actor instanceof WeaponActor) {
+			actor.update();
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////

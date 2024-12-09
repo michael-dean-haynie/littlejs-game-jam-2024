@@ -1,8 +1,12 @@
 /// <reference types="vitest/config" />
 import path from "node:path";
 import { defineConfig } from "vite";
+import checker from "vite-plugin-checker";
 
 export default defineConfig(({ mode }) => ({
+	plugins: [
+		checker({ typescript: true }), // Enable TypeScript checking
+	],
 	resolve: {
 		alias: {
 			littlejsengine:
@@ -17,5 +21,7 @@ export default defineConfig(({ mode }) => ({
 						),
 		},
 	},
-	// test: {},
+	test: {
+		environment: "jsdom",
+	},
 }));

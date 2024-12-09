@@ -4,36 +4,40 @@ import {
 	keyWasReleased,
 	mouseWasPressed,
 } from "littlejsengine";
-import type { MessageBroker } from "../message-broker";
 import { IssueOrderMessage } from "../messages/issue-order-message";
-import { AttackInDirectionOrder } from "../orders/attack-order";
+import type { Message } from "../messages/message";
+import { AttackOrder } from "../orders/attack-order";
 import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
 import { StopMovingOrder } from "../orders/stop-moving-order";
 import { yeet } from "../utilities/utilities";
+import { Actor } from "./actor";
+import { UnitActor } from "./unit-actor";
 
-export class InputHelper {
-	constructor(private readonly _messageBroker: MessageBroker) {
-		this.stack = [];
+export class InputActor extends Actor {
+	constructor(...params: ConstructorParameters<typeof Actor>) {
+		super(...params);
+		this._stack = [];
 	}
 
-	private stack: Direction[];
+	protected handleMessage<T extends Message>(message: T): void {}
 
-	/** the current direction based off of user input */
-	get currentDirection(): Direction | null {
-		if (!this.stack.length) {
+	private _stack: Direction[];
+
+	private get currentDirection(): Direction | null {
+		if (!this._stack.length) {
 			return null;
 		}
 
 		const lastPressedDirection =
-			this.stack.at(-1) ?? yeet("UNEXPECTED_NULLISH_VALUE");
+			this._stack.at(-1) ?? yeet("UNEXPECTED_NULLISH_VALUE");
 
-		if (this.stack.length === 1) {
+		if (this._stack.length === 1) {
 			return lastPressedDirection;
 		}
 
 		// check for combos
-		for (let stackIdx = this.stack.length - 2; stackIdx >= 0; stackIdx--) {
-			const potentialCombo = [lastPressedDirection, this.stack[stackIdx]];
+		for (let stackIdx = this._stack.length - 2; stackIdx >= 0; stackIdx--) {
+			const potentialCombo = [lastPressedDirection, this._stack[stackIdx]];
 			const comboDirection = getDirectionFromCombo(potentialCombo);
 			if (comboDirection) {
 				return comboDirection;
@@ -44,22 +48,30 @@ export class InputHelper {
 		return lastPressedDirection;
 	}
 
+	// overwrite super, not extend since this input actor should only publish messages, not receive
 	update(): void {
 		this.handleMovementInput();
 
 		// attack
 		if (mouseWasPressed(0)) {
-			this._messageBroker.publish(
-				new IssueOrderMessage({
-					order: new AttackInDirectionOrder(),
-					orderedUnitId: this._messageBroker.playerActor.playerUnitId,
-				}),
+			const playerUnitActorId =
+				this.actorDirectory.getActorIdByAlias("playerUnitActor") ||
+				yeet("UNEXPECTED_NULLISH_VALUE");
+
+			this.messageBroker.publishMessage(
+				new IssueOrderMessage(
+					new AttackOrder(this.actorDirectory, this.messageBroker),
+				),
+				{ actorType: UnitActor, actorIds: [playerUnitActorId] },
 			);
 		}
 	}
 
 	private handleMovementInput(): void {
 		// NOTE: WASD also auto-maps to arrow keys
+		const playerUnitActorId =
+			this.actorDirectory.getActorIdByAlias("playerUnitActor") ||
+			yeet("UNEXPECTED_NULLISH_VALUE");
 
 		const prevDirection = this.currentDirection;
 
@@ -79,34 +91,36 @@ export class InputHelper {
 
 		// key was released
 		if (keyWasReleased("ArrowUp")) {
-			this.stack = this.stack.filter((dir) => dir !== "up");
+			this._stack = this._stack.filter((dir) => dir !== "up");
 		}
 		if (keyWasReleased("ArrowLeft")) {
-			this.stack = this.stack.filter((dir) => dir !== "left");
+			this._stack = this._stack.filter((dir) => dir !== "left");
 		}
 		if (keyWasReleased("ArrowDown")) {
-			this.stack = this.stack.filter((dir) => dir !== "down");
+			this._stack = this._stack.filter((dir) => dir !== "down");
 		}
 		if (keyWasReleased("ArrowRight")) {
-			this.stack = this.stack.filter((dir) => dir !== "right");
+			this._stack = this._stack.filter((dir) => dir !== "right");
 		}
 
 		if (this.currentDirection !== prevDirection) {
 			if (!this.currentDirection) {
-				this._messageBroker.publish(
-					new IssueOrderMessage({
-						order: new StopMovingOrder(),
-						orderedUnitId: this._messageBroker.playerActor.playerUnitId,
-					}),
+				this.messageBroker.publishMessage(
+					new IssueOrderMessage(
+						new StopMovingOrder(this.actorDirectory, this.messageBroker),
+					),
+					{ actorType: UnitActor, actorIds: [playerUnitActorId] },
 				);
 			} else {
-				this._messageBroker.publish(
-					new IssueOrderMessage({
-						order: new MoveInDirectionOrder({
-							direction: this.currentDirection,
-						}),
-						orderedUnitId: this._messageBroker.playerActor.playerUnitId,
-					}),
+				this.messageBroker.publishMessage(
+					new IssueOrderMessage(
+						new MoveInDirectionOrder(
+							this.currentDirection,
+							this.actorDirectory,
+							this.messageBroker,
+						),
+					),
+					{ actorType: UnitActor, actorIds: [playerUnitActorId] },
 				);
 			}
 		}
@@ -114,8 +128,8 @@ export class InputHelper {
 
 	/** adds direction to the stack if it is not already there */
 	private tryPush(direction: Direction): void {
-		if (!this.stack.includes(direction)) {
-			this.stack.push(direction);
+		if (!this._stack.includes(direction)) {
+			this._stack.push(direction);
 		}
 	}
 }

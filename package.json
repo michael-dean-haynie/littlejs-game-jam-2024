@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
+		"compile": "tsc --noEmit",
 		"lint": "biome check .",
 		"lint:fix": "biome check . --write",
 		"test": "vitest run",
@@ -17,9 +18,11 @@
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
 		"@types/fast-astar": "^1.0.3",
+		"jsdom": "^25.0.1",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.7.2",
 		"vite": "^6.0.1",
+		"vite-plugin-checker": "^0.8.0",
 		"vitest": "^2.1.6"
 	},
 	"dependencies": {

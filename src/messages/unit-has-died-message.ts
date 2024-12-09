@@ -1,23 +1,16 @@
+import type { Team } from "../actors/player-actor";
 import type { UnitType } from "../units/unit";
-import type { Team } from "./create-unit-message";
-import type { Message, MessageType } from "./message";
+import { Message } from "./message";
 
-export class UnitHasDiedMessage implements Message {
-	constructor(args: Omit<UnitHasDiedMessage, "type">) {
-		this.type = "UnitHasDiedMessage";
-		this.deadUnitId = args?.deadUnitId;
-		this.deadUnitType = args?.deadUnitType;
-		this.deadUnitTeam = args?.deadUnitTeam;
-		this.killingUnitId = args?.killingUnitId;
-		this.killingUnitType = args?.killingUnitType;
-		this.killingUnitTeam = args?.killingUnitTeam;
+export class UnitHasDiedMessage extends Message {
+	constructor(
+		public readonly deadUnitActorId: string,
+		public readonly deadUnitType: UnitType,
+		public readonly deadUnitTeam: Team,
+		public readonly killingUnitActorId: string,
+		public readonly killingUnitType: UnitType,
+		public readonly killingUnitTeam: Team,
+	) {
+		super();
 	}
-
-	type: MessageType;
-	deadUnitId: string;
-	deadUnitType: UnitType;
-	deadUnitTeam: Team;
-	killingUnitId: string;
-	killingUnitType: UnitType;
-	killingUnitTeam: Team;
 }

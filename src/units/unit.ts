@@ -1,9 +1,5 @@
 import { type Color, rgb } from "littlejsengine";
-import {
-	type WeaponType,
-	WeaponTypeName,
-	WeaponTypes,
-} from "../weapons/weapon";
+import { type WeaponType, WeaponTypes } from "../weapons/weapon";
 
 export const UnitTypeNames = ["prey", "rabbit", "pig"] as const;
 export type UnitTypeName = (typeof UnitTypeNames)[number];

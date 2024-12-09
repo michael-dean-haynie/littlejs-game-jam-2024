@@ -1,80 +1,84 @@
 import { vec2 } from "littlejsengine";
-import type { MessageBroker } from "../message-broker";
-import {
-	CreateUnitMessage,
-	IsCreateUnitMessage,
-} from "../messages/create-unit-message";
 import { IssueOrderMessage } from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
 import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
-import { FollowUnitOrder } from "../orders/follow-unit-order";
+import { AttackUnitOrder } from "../orders/attack-unit-order";
 import { UnitTypes } from "../units/unit";
+import { yeet } from "../utilities/utilities";
 import { Actor } from "./actor";
+import { PathingActor } from "./pathing-actor";
 import { UnitActor } from "./unit-actor";
 
 export class EnemyActor extends Actor {
-	constructor(messageBroker: MessageBroker) {
-		super(messageBroker);
+	constructor(...params: ConstructorParameters<typeof Actor>) {
+		super(...params);
 
-		// register message handlers
-		this.handlers.set("CreateUnitMessage", this.handleCreateUnitMessage);
-		this.handlers.set("UnitHasDiedMessage", this.handleUnitHasDiedMessage);
+		this.actorDirectory.registerActorAlias("enemyActor", this.actorId);
 
-		// create some units for now
-		this.messageBroker.publish(
-			new CreateUnitMessage({
-				unitType: UnitTypes.rabbit,
-				position: vec2(10, 5),
-				team: "enemy",
-			}),
+		const pathingActor =
+			this.actorDirectory.getActorByAlias("pathingActor", PathingActor) ??
+			yeet("UNEXPECTED_NULLISH_VALUE");
+
+		const playerUnitActor =
+			this.actorDirectory.getActorByAlias("playerUnitActor", UnitActor) ??
+			yeet("UNEXPECTED_NULLISH_VALUE");
+
+		// create enemy units
+		const unitActor1 = new UnitActor(
+			UnitTypes.rabbit,
+			pathingActor.worldCenter.add(vec2(-5, -5)),
+			"enemy",
+			this.actorDirectory,
+			this.messageBroker,
 		);
-		this.messageBroker.publish(
-			new CreateUnitMessage({
-				unitType: UnitTypes.rabbit,
-				position: vec2(10, 10),
-				team: "enemy",
-			}),
+		const unitActor2 = new UnitActor(
+			UnitTypes.rabbit,
+			pathingActor.worldCenter.add(vec2(5, 5)),
+			"enemy",
+			this.actorDirectory,
+			this.messageBroker,
 		);
-		this.messageBroker.publish(
-			new CreateUnitMessage({
-				unitType: UnitTypes.pig,
-				position: vec2(30, 5),
-				team: "enemy",
-			}),
+		const unitActor3 = new UnitActor(
+			UnitTypes.pig,
+			pathingActor.worldCenter.add(vec2(-5, 5)),
+			"enemy",
+			this.actorDirectory,
+			this.messageBroker,
 		);
-		this.messageBroker.publish(
-			new CreateUnitMessage({
-				unitType: UnitTypes.pig,
-				position: vec2(30, 10),
-				team: "enemy",
-			}),
+		const unitActor4 = new UnitActor(
+			UnitTypes.pig,
+			pathingActor.worldCenter.add(vec2(5, -5)),
+			"enemy",
+			this.actorDirectory,
+			this.messageBroker,
 		);
+
+		for (const unit of [unitActor1, unitActor2, unitActor3, unitActor4]) {
+			this.messageBroker.publishMessage(
+				new IssueOrderMessage(
+					new AttackUnitOrder(
+						this.actorDirectory,
+						this.messageBroker,
+						playerUnitActor.actorId,
+					),
+				),
+				{
+					actorType: UnitActor,
+					actorIds: [unit.actorId],
+				},
+			);
+		}
 	}
 
-	private handleCreateUnitMessage = (message: Message): void => {
-		if (IsCreateUnitMessage(message)) {
-			if (message.team === "enemy") {
-				const unitActor = new UnitActor(this.messageBroker, message);
-				this.messageBroker.publish(
-					new IssueOrderMessage({
-						order: new FollowUnitOrder({
-							targetUnitId: this.messageBroker.playerActor.playerUnitId,
-						}),
-						orderedUnitId: unitActor.unitId,
-					}),
-				);
-			}
-		}
-	};
-
-	private handleUnitHasDiedMessage = (message: Message): void => {
+	protected handleMessage<T extends Message>(message: T): void {
 		if (message instanceof UnitHasDiedMessage) {
-			if (message.deadUnitTeam === "enemy") {
-				//
-
-				// destroy actors
-				this.messageBroker.destroyUnitActor(message.deadUnitId);
-			}
+			this.handleUnitHasDiedMessage(message);
 		}
-	};
+	}
+
+	private handleUnitHasDiedMessage(message: UnitHasDiedMessage): void {
+		if (message.deadUnitTeam === "enemy") {
+			// make another one?
+		}
+	}
 }

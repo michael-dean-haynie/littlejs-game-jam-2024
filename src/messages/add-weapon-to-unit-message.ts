@@ -1,20 +1,8 @@
 import type { WeaponType } from "../weapons/weapon";
-import type { Message, MessageType } from "./message";
+import { Message } from "./message";
 
-export class AddWeaponToUnitMessage implements Message {
-	constructor(args: Omit<AddWeaponToUnitMessage, "type">) {
-		this.type = "AddWeaponToUnitMessage";
-		this.weaponType = args?.weaponType;
-		this.unitId = args?.unitId;
+export class AddWeaponToUnitMessage extends Message {
+	constructor(public readonly weaponType: WeaponType) {
+		super();
 	}
-
-	type: MessageType;
-	weaponType: WeaponType;
-	unitId: string;
-}
-
-export function IsAddWeaponToUnitMessage(
-	value: Message | null,
-): value is AddWeaponToUnitMessage {
-	return value?.type === "AddWeaponToUnitMessage";
 }

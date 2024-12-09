@@ -1,20 +1,11 @@
 import type { Vector2 } from "littlejsengine";
-import type { Message, MessageType } from "./message";
+import { Message } from "./message";
 
-export class ImpactUnitMessage implements Message {
-	constructor(args: Omit<ImpactUnitMessage, "type">) {
-		this.type = "ImpactUnitMessage";
-		this.force = args.force;
-		this.impactedUnitId = args.impactedUnitId;
+export class ImpactUnitMessage extends Message {
+	constructor(
+		public readonly force: Vector2,
+		...params: ConstructorParameters<typeof Message>
+	) {
+		super(...params);
 	}
-
-	type: MessageType;
-	force: Vector2;
-	impactedUnitId: string;
-}
-
-export function IsImpactUnitMessage(
-	value: Message | null,
-): value is ImpactUnitMessage {
-	return value?.type === "ImpactUnitMessage";
 }

@@ -1,15 +1,10 @@
-import type { Message, MessageType } from "./message";
+import { Message } from "./message";
 
-export class DamageUnitMessage implements Message {
-	constructor(args: Omit<DamageUnitMessage, "type">) {
-		this.type = "DamageUnitMessage";
-		this.damagedUnitId = args?.damagedUnitId;
-		this.damagingUnitId = args?.damagingUnitId;
-		this.damage = args?.damage;
+export class DamageUnitMessage extends Message {
+	constructor(
+		public readonly damagingUnitActorId: string,
+		public readonly damage: number,
+	) {
+		super();
 	}
-
-	type: MessageType;
-	damagedUnitId: string;
-	damagingUnitId: string;
-	damage: number;
 }

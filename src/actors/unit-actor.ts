@@ -1,313 +1,247 @@
-import {
-	type EngineObject,
-	PI,
-	type Vector2,
-	isOverlapping,
-	vec2,
-} from "littlejsengine";
-import { v4 } from "uuid";
+import { PI, type Vector2, vec2 } from "littlejsengine";
 import { UnitEngineObject } from "../engine-objects/unit-engine-object";
-import type { MessageBroker } from "../message-broker";
-import {
-	AddWeaponToUnitMessage,
-	IsAddWeaponToUnitMessage,
-} from "../messages/add-weapon-to-unit-message";
-import type { CreateUnitMessage, Team } from "../messages/create-unit-message";
-import { FireWeaponMessage } from "../messages/fire-weapon-message";
-import { IsImpactUnitMessage } from "../messages/impact-unit-message";
-import {
-	IsIssueOrderMessage,
-	IssueOrderMessage,
-} from "../messages/issue-order-message";
+import { AddWeaponToUnitMessage } from "../messages/add-weapon-to-unit-message";
+import { ChangeUnitVelocityMessage } from "../messages/change-unit-velocity-message";
+import { ImpactUnitMessage } from "../messages/impact-unit-message";
+import { IssueOrderMessage } from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
 import { DamageUnitMessage } from "../messages/take-damage-message";
 import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
-import { AttackInDirectionOrder } from "../orders/attack-order";
-import { EquipWeaponOrder } from "../orders/equip-weapon-order";
-import { FollowUnitOrder } from "../orders/follow-unit-order";
 import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
 import type { Order } from "../orders/order";
 import { StopMovingOrder } from "../orders/stop-moving-order";
 import type { UnitType } from "../units/unit";
+import { UnitFlags } from "../units/unit-flags";
+import { yeet } from "../utilities/utilities";
+import type { WeaponType } from "../weapons/weapon";
 import { Actor } from "./actor";
+import type { Team } from "./player-actor";
 import { WeaponActor } from "./weapon-actor";
-
-export const UnitMovementTypes = ["none", "self propelled", "impact"] as const;
-export type UnitMovementType = (typeof UnitMovementTypes)[number];
-
-export function IsUnitMovemmentType(
-	value: string | null,
-): value is UnitMovementType {
-	return UnitMovementTypes.includes(value as UnitMovementType);
-}
 
 export class UnitActor extends Actor {
 	constructor(
-		messageBroker: MessageBroker,
-		createUnitActorMessage: CreateUnitMessage,
+		unitType: UnitType,
+		position: Vector2,
+		team: Team,
+		...params: ConstructorParameters<typeof Actor>
 	) {
-		super(messageBroker);
+		super(...params);
+		this.unitType = unitType;
+		this.team = team;
+		this._flags = new UnitFlags();
+		this._weaponActorIds = [];
+		this._equippedWeaponActorId = null;
+		this._hitpoints = this.unitType.hitpoints;
+		this._facingAngle = PI; // down
 
-		// register message handlers
-		this.handlers.set(
-			"AddWeaponToUnitMessage",
-			this.handleAddWeaponToUnitMessage,
-		);
-		this.handlers.set("ImpactUnitMessage", this.handleImpactUnitMessage);
-		this.handlers.set("DamageUnitMessage", this.handleDamageUnitMessage);
-		this.handlers.set("IssueOrderMessage", this.handleIssueOrderMessage);
-
-		this.unitId = v4();
-		this.unitType = createUnitActorMessage.unitType;
-		this.team = createUnitActorMessage.team;
-		this._orderQueue = [];
-		this.facingAngle = PI;
-		this.currentMovementType = "none";
-		this.weaponActors = [];
-		this.hitpoints = this.unitType.hitpoints;
-
-		// add default weapons
+		// add default weapons (skip message broker for immediate init)
 		for (const weaponType of this.unitType.defaultWeapons) {
-			this.messageBroker.publish(
-				new AddWeaponToUnitMessage({
-					weaponType: weaponType,
-					unitId: this.unitId,
-				}),
-			);
+			this.addWeaponActor(weaponType);
 		}
 
-		// create engineObject
+		// create engine object
 		this._engineObject = new UnitEngineObject(
 			this.messageBroker,
 			this,
-			createUnitActorMessage.position,
+			position,
 			vec2(this.unitType.size),
 			undefined,
 			undefined,
 			this.unitType.color,
 		);
 		this._engineObject.mass = this.unitType.mass;
+
+		this._orderQueue = [];
 	}
 
-	readonly unitId: string;
 	readonly unitType: UnitType;
 	readonly team: Team;
-	currentMovementType: UnitMovementType;
-	weaponActors: WeaponActor[];
-	equippedWeaponActor?: WeaponActor;
-	facingAngle: number;
-	hitpoints: number;
 
-	private _engineObject: UnitEngineObject;
-	private _orderQueue: Order[];
+	private _facingAngle: number; // in radians
+	get facingAngle(): number {
+		return this._facingAngle;
+	}
 
+	private _flags: UnitFlags;
+	get flags(): Readonly<UnitFlags> {
+		return this._flags;
+	}
+
+	private _weaponActorIds: string[];
+	get weaponActorIds(): ReadonlyArray<string> {
+		return this._weaponActorIds;
+	}
+
+	private _equippedWeaponActorId: string | null;
+	get equippedWeaponActorId(): string | null {
+		return this._equippedWeaponActorId;
+	}
+
+	private _hitpoints: number;
+	get hitpoints(): number {
+		return this._hitpoints;
+	}
+
+	private readonly _engineObject: UnitEngineObject;
 	get pos(): Vector2 {
 		return this._engineObject.pos;
 	}
+	get size(): Vector2 {
+		return this._engineObject.size;
+	}
+	get velocity(): Vector2 {
+		return this._engineObject.velocity;
+	}
+	// TODO: hide this
+	get engineObject(): UnitEngineObject {
+		return this._engineObject;
+	}
+
+	private readonly _orderQueue: Order[];
 
 	destroy(): void {
-		super.destroy();
-		this._engineObject.destroy();
-		for (const weaponActor of this.weaponActors) {
+		// destroy weapon actors
+		for (const weaponActorId of this._weaponActorIds) {
+			const weaponActor = this.actorDirectory.getActorById(
+				weaponActorId,
+				WeaponActor,
+			);
 			weaponActor.destroy();
 		}
+
+		// destroy engine object
+		this._engineObject.destroy();
+
+		super.destroy();
 	}
 
 	update(): void {
-		super.update();
+		// un-impact self after coming close enough to a halt
+		if (this.flags.impacted && this.velocity.length() < 0.01) {
+			this._flags.impacted = false;
+		}
+
+		super.update(); // handles incomming messages
 
 		// process order queue
-		if (this._orderQueue.length) {
+		if (this._orderQueue.length && !this.destroyed) {
 			// try to execute order
 			const order = this._orderQueue[0];
-			this.executeOrder(order);
+			order.tryToProgress();
 
 			// if it completed, remove it from the queue
-			if (order.progress === "complete") {
+			if (order.stage === "complete") {
 				this._orderQueue.shift();
 			}
 		}
 	}
 
-	doesOverlap(point: Vector2, size: number): boolean {
-		return isOverlapping(
-			point,
-			vec2(size),
-			this._engineObject.pos,
-			vec2(this.unitType.size),
-		);
+	protected handleMessage<T extends Message>(message: T): void {
+		if (message instanceof AddWeaponToUnitMessage) {
+			this.handleAddWeaponToUnitMessage(message);
+		}
+		if (message instanceof ImpactUnitMessage) {
+			this.handleImpactUnitMessage(message);
+		}
+		if (message instanceof DamageUnitMessage) {
+			this.handleDamageUnitMessage(message);
+		}
+		if (message instanceof ChangeUnitVelocityMessage) {
+			this.handleChangeUnitVelocityMessage(message);
+		}
+		if (message instanceof IssueOrderMessage) {
+			this.handleIssueOrderMessage(message);
+		}
 	}
 
-	private handleAddWeaponToUnitMessage = (message: Message): void => {
-		if (IsAddWeaponToUnitMessage(message)) {
-			if (message.unitId === this.unitId) {
-				this.weaponActors.push(
-					new WeaponActor(message.weaponType, this, this.messageBroker),
-				);
-				if (!this.equippedWeaponActor) {
-					this.messageBroker.publish(
-						new IssueOrderMessage({
-							order: new EquipWeaponOrder({
-								weaponType: message.weaponType,
-							}),
-							orderedUnitId: this.unitId,
-						}),
-					);
-				}
-			}
-		}
-	};
+	private handleAddWeaponToUnitMessage(message: AddWeaponToUnitMessage): void {
+		this.addWeaponActor(message.weaponType);
+	}
 
-	private handleImpactUnitMessage = (message: Message): void => {
-		if (IsImpactUnitMessage(message)) {
-			if (message.impactedUnitId === this.unitId) {
-				this.currentMovementType = "impact";
-				this._engineObject.applyForce(message.force);
-			}
-		}
-	};
+	private handleImpactUnitMessage(message: ImpactUnitMessage): void {
+		this._flags.impacted = true;
+		this._engineObject.applyForce(message.force);
+	}
 
-	private handleDamageUnitMessage = (message: Message): void => {
-		if (message instanceof DamageUnitMessage) {
-			if (message.damagedUnitId === this.unitId) {
-				this.hitpoints -= message.damage;
-				if (this.hitpoints <= 0) {
-					const killingUnitActor = this.messageBroker.getUnitActorById(
-						message.damagingUnitId,
-					);
-					this.messageBroker.publish(
-						new UnitHasDiedMessage({
-							deadUnitId: this.unitId,
-							deadUnitType: this.unitType,
-							deadUnitTeam: this.team,
-							killingUnitId: killingUnitActor.unitId,
-							killingUnitType: killingUnitActor.unitType,
-							killingUnitTeam: killingUnitActor.team,
-						}),
-					);
-				}
-			}
-		}
-	};
+	private handleDamageUnitMessage(message: DamageUnitMessage): void {
+		this._hitpoints -= message.damage;
+		if (this.hitpoints <= 0) {
+			const killingUnitActor =
+				this.actorDirectory.getActorById<UnitActor>(
+					message.damagingUnitActorId,
+					UnitActor,
+				) || yeet("UNEXPECTED_NULLISH_VALUE");
 
-	private handleIssueOrderMessage = (message: Message): void => {
-		if (IsIssueOrderMessage(message)) {
-			if (message.orderedUnitId === this.unitId) {
-				if (message.order instanceof MoveInDirectionOrder) {
-					this._orderQueue.length = 0; // empty queue whilst preserving reference
-					this._orderQueue.unshift(message.order);
-				}
-
-				if (message.order instanceof StopMovingOrder) {
-					this._orderQueue.length = 0; // empty queue whilst preserving reference
-					this._orderQueue.unshift(message.order);
-				}
-
-				if (message.order instanceof FollowUnitOrder) {
-					this._orderQueue.length = 0; // empty queue whilst preserving reference
-					this._orderQueue.unshift(message.order);
-				}
-
-				if (message.order instanceof AttackInDirectionOrder) {
-					this._orderQueue.unshift(message.order);
-				}
-
-				if (message.order instanceof EquipWeaponOrder) {
-					this._orderQueue.unshift(message.order);
-				}
-			}
-		}
-	};
-
-	private executeOrder(order: Order): void {
-		if (order instanceof MoveInDirectionOrder) {
-			if (
-				this.currentMovementType !== "impact" ||
-				this._engineObject.velocity.length() < 0.01
-			) {
-				const ms = this.unitType.moveSpeed;
-				if (order.direction === "up") {
-					this._engineObject.velocity = vec2(0, 1).normalize(ms);
-				}
-				if (order.direction === "left") {
-					this._engineObject.velocity = vec2(-1, 0).normalize(ms);
-				}
-				if (order.direction === "down") {
-					this._engineObject.velocity = vec2(0, -1).normalize(ms);
-				}
-				if (order.direction === "right") {
-					this._engineObject.velocity = vec2(1, 0).normalize(ms);
-				}
-				if (order.direction === "up left") {
-					this._engineObject.velocity = vec2(-1, 1).normalize(ms);
-				}
-				if (order.direction === "down left") {
-					this._engineObject.velocity = vec2(-1, -1).normalize(ms);
-				}
-				if (order.direction === "up right") {
-					this._engineObject.velocity = vec2(1, 1).normalize(ms);
-				}
-				if (order.direction === "down right") {
-					this._engineObject.velocity = vec2(1, -1).normalize(ms);
-				}
-				this.facingAngle = this._engineObject.velocity.angle();
-				this.currentMovementType = "self propelled";
-				order.progress = "in progress";
-			}
-		}
-
-		if (order instanceof StopMovingOrder) {
-			this._engineObject.velocity = vec2(0, 0);
-			this.currentMovementType = "none";
-			order.progress = "complete";
-		}
-
-		if (order instanceof FollowUnitOrder) {
-			if (
-				this.currentMovementType !== "impact" ||
-				this._engineObject.velocity.length() < 0.01
-			) {
-				const targetUnitActor = this.messageBroker.getUnitActorById(
-					order.targetUnitId,
-				);
-				const targetUnitPos = targetUnitActor._engineObject.pos;
-				const path = this.messageBroker.pathingHelper.getPath(
-					this._engineObject.pos,
-					targetUnitPos,
-					this._engineObject,
-				);
-
-				const node = path.length > 1 ? path[1] : path[0]; // skip first path node (cause it was rounded to snap to grid)
-				const direction = node.subtract(this._engineObject.pos);
-				this._engineObject.velocity = direction.normalize(
-					this.unitType.moveSpeed,
-				);
-
-				this.facingAngle = this._engineObject.velocity.angle();
-				this.currentMovementType = "self propelled";
-				order.progress = "in progress";
-			}
-		}
-
-		if (order instanceof EquipWeaponOrder) {
-			this.equippedWeaponActor = this.weaponActors.find(
-				(wa) => wa.weaponType === order.weaponType,
+			this.messageBroker.publishMessage(
+				new UnitHasDiedMessage(
+					this.actorId,
+					this.unitType,
+					this.team,
+					killingUnitActor.actorId,
+					killingUnitActor.unitType,
+					killingUnitActor.team,
+				),
+				{
+					actorIds: [
+						this.actorDirectory.getActorIdByAlias("playerActor"),
+						this.actorDirectory.getActorIdByAlias("enemyActor"),
+					],
+				},
 			);
-			order.progress = "complete";
-		}
 
-		if (order instanceof AttackInDirectionOrder) {
-			if (this.equippedWeaponActor) {
-				this.messageBroker.publish(
-					new FireWeaponMessage({
-						firingUnitId: this.unitId,
-					}),
-				);
-			} else {
-				throw new Error("no weapon is equipped");
+			this.destroy();
+		}
+	}
+
+	private handleChangeUnitVelocityMessage(
+		message: ChangeUnitVelocityMessage,
+	): void {
+		this._engineObject.velocity = message.velocity;
+		if (message.updateFacingAngle && message.velocity.length() > 0) {
+			this._facingAngle = message.velocity.angle();
+		}
+	}
+
+	private handleIssueOrderMessage(message: IssueOrderMessage): void {
+		message.order.unitActorId = this.actorId;
+		// this._orderQueue.length = 0; // empty order queue
+
+		// replace conflicting orders
+		if (
+			message.order instanceof MoveInDirectionOrder ||
+			message.order instanceof StopMovingOrder
+		) {
+			if (
+				this._orderQueue[0] instanceof MoveInDirectionOrder ||
+				this._orderQueue[0] instanceof StopMovingOrder
+			) {
+				this._orderQueue.shift(); // remove first existing order
 			}
-
-			order.progress = "complete";
 		}
+
+		// reset progress for any orders that got delayed
+		for (const order of this._orderQueue) {
+			order.resetProgress();
+		}
+		this._orderQueue.unshift(message.order);
+	}
+
+	private addWeaponActor(weaponType: WeaponType): void {
+		const weaponActor = new WeaponActor(
+			weaponType,
+			this.actorId,
+			this.actorDirectory,
+			this.messageBroker,
+		);
+		this._weaponActorIds.push(weaponActor.actorId);
+
+		// equip if there's no weapon already equipped
+		if (this.equippedWeaponActorId === null) {
+			this.equipWeaponActor(weaponActor.actorId);
+		}
+	}
+
+	private equipWeaponActor(weaponActorId: string): void {
+		this._equippedWeaponActorId = weaponActorId;
 	}
 }

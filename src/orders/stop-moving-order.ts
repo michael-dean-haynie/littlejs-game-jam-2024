@@ -1,12 +1,18 @@
-import type { UnitActor } from "../actors/unit-actor";
-import type { Order, OrderProgress, OrderType } from "./order";
+import type { AbilityStage } from "../abilities/ability";
+import { StopMovingAbility } from "../abilities/stop-moving-ability";
+import { Order } from "./order";
 
-export class StopMovingOrder implements Order {
-	constructor(args: Omit<StopMovingOrder, "type" | "progress"> = {}) {
-		this.type = "StopMovingOrder";
-		this.progress = "pending";
+export class StopMovingOrder extends Order {
+	protected initializeAbility(): void {
+		this.ability = new StopMovingAbility(
+			this.actorDirectory,
+			this.messageBroker,
+		);
 	}
 
-	type: OrderType;
-	progress: OrderProgress;
+	protected handleAbilityProgress(abilityStage: AbilityStage): void {
+		if (abilityStage === "complete") {
+			this.stage = "complete";
+		}
+	}
 }
