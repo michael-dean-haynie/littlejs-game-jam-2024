@@ -24,36 +24,17 @@ export class EnemyActor extends Actor {
 			yeet("UNEXPECTED_NULLISH_VALUE");
 
 		// create enemy units
-		const unitActor1 = new UnitActor(
-			UnitTypes.rabbit,
-			pathingActor.worldCenter.add(vec2(-5, -5)),
-			"enemy",
-			this.actorDirectory,
-			this.messageBroker,
-		);
-		const unitActor2 = new UnitActor(
-			UnitTypes.rabbit,
-			pathingActor.worldCenter.add(vec2(5, 5)),
-			"enemy",
-			this.actorDirectory,
-			this.messageBroker,
-		);
-		const unitActor3 = new UnitActor(
-			UnitTypes.pig,
-			pathingActor.worldCenter.add(vec2(-5, 5)),
-			"enemy",
-			this.actorDirectory,
-			this.messageBroker,
-		);
-		const unitActor4 = new UnitActor(
-			UnitTypes.pig,
-			pathingActor.worldCenter.add(vec2(5, -5)),
-			"enemy",
-			this.actorDirectory,
-			this.messageBroker,
-		);
+		for (let index = 0; index < 100; index++) {
+			// spawn
+			const unitActor = new UnitActor(
+				UnitTypes.rabbit,
+				pathingActor.getRandomSpawnPoint(),
+				"enemy",
+				this.actorDirectory,
+				this.messageBroker,
+			);
 
-		for (const unit of [unitActor1, unitActor2, unitActor3, unitActor4]) {
+			// attack
 			this.messageBroker.publishMessage(
 				new IssueOrderMessage(
 					new AttackUnitOrder(
@@ -64,7 +45,7 @@ export class EnemyActor extends Actor {
 				),
 				{
 					actorType: UnitActor,
-					actorIds: [unit.actorId],
+					actorIds: [unitActor.actorId],
 				},
 			);
 		}

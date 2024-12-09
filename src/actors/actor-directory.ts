@@ -4,10 +4,12 @@ import type { Actor } from "./actor";
 export class ActorDirectory {
 	constructor() {
 		this._actors = [];
+		this._actorMap = new Map<string, Actor>();
 		this._actorAliasMap = new Map<string, string>();
 	}
 
 	private readonly _actors: Actor[];
+	private readonly _actorMap: Map<string, Actor>;
 	private readonly _actorAliasMap: Map<string, string>;
 
 	get actors(): ReadonlyArray<Actor> {

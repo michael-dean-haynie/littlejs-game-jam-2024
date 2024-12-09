@@ -20,7 +20,7 @@ import { ObstacleEngineObject } from "./engine-objects/obstacle-engine-object";
 import { PlayerObstacleEngineObject } from "./engine-objects/player-obstacle-engine-object";
 import { MessageBroker } from "./messages/message-broker";
 
-setShowSplashScreen(true);
+// setShowSplashScreen(true);
 
 // globals
 const canvasSize = vec2(1280, 720); // use a 720p fixed size canvas
@@ -59,6 +59,9 @@ function gameInit() {
 		actorDirectory,
 		messageBroker,
 	);
+	// TODO: for debugging - remove
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	(window as any).pathingActor = pathingActor;
 	inputActor = new InputActor(actorDirectory, messageBroker);
 
 	setCanvasFixedSize(canvasSize);
@@ -67,58 +70,6 @@ function gameInit() {
 	setObjectDefaultDamping(0.9);
 	// setObjectDefaultFriction(0);
 	// setObjectDefaultElasticity(1);
-
-	// install player obstacles at arena edges (just outside of arena size)
-	const left = new PlayerObstacleEngineObject(
-		vec2(worldCenter.x - arenaSize.x / 2 - 0.5, worldSize.y / 2),
-		vec2(1, arenaSize.y),
-	);
-	const right = new PlayerObstacleEngineObject(
-		vec2(worldCenter.x + arenaSize.x / 2 + 0.5, worldSize.y / 2),
-		vec2(1, arenaSize.y),
-	);
-	const top = new PlayerObstacleEngineObject(
-		vec2(worldSize.x / 2, worldCenter.y + arenaSize.y / 2 + 0.5),
-		vec2(arenaSize.x, 1),
-	);
-	const bottom = new PlayerObstacleEngineObject(
-		vec2(worldSize.x / 2, worldCenter.y - arenaSize.y / 2 - 0.5),
-		vec2(arenaSize.x, 1),
-	);
-
-	// install obstacles at world edges (taking up 1 space just inside world size because barriers need registered by astar pathing grid)
-	const wLeft = new ObstacleEngineObject(
-		false,
-		vec2(0.5, worldSize.y / 2),
-		vec2(1, worldSize.y),
-	);
-	const wRight = new ObstacleEngineObject(
-		false,
-		vec2(worldSize.x - 0.5, worldSize.y / 2),
-		vec2(1, worldSize.y),
-	);
-	const wTop = new ObstacleEngineObject(
-		false,
-		vec2(worldSize.x / 2, worldSize.y - 0.5),
-		vec2(worldSize.x, 1),
-	);
-	const wBottom = new ObstacleEngineObject(
-		false,
-		vec2(worldSize.x / 2, 0.5),
-		vec2(worldSize.x, 1),
-	);
-
-	// TRYING OUT SIMPLEX NOISE
-	const noise2d = createNoise2D();
-	for (let x = 0; x < worldSize.x; x++) {
-		for (let y = 0; y < worldSize.y; y++) {
-			// console.log(`(${x},${y}): ${noise2d(x, y)}`);
-			const value = noise2d(x, y);
-			if (value > 0.75) {
-				const obstacle = new ObstacleEngineObject(true, vec2(x, y), vec2(1, 1));
-			}
-		}
-	}
 
 	playerActor = new PlayerActor(actorDirectory, messageBroker);
 	enemyActor = new EnemyActor(actorDirectory, messageBroker);

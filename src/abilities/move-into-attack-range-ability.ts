@@ -1,3 +1,4 @@
+import { debugRect, vec2 } from "littlejsengine";
 import type { ActorDirectory } from "../actors/actor-directory";
 import { PathingActor } from "../actors/pathing-actor";
 import { UnitActor } from "../actors/unit-actor";
@@ -53,11 +54,12 @@ export class MoveIntoAttackRangeAbility extends Ability {
 			PathingActor,
 		);
 
-		const path = pathingActor.getPath(
-			unitActor.pos,
-			targetUnitActor.pos,
-			unitActor.engineObject,
-		);
+		const path = pathingActor.getPath(unitActor.pos, targetUnitActor.pos);
+
+		// for (const wpNode of path) {
+		// 	debugRect(wpNode, vec2(1, 1), "#fff");
+		// }
+
 		const node = path.length > 1 ? path[1] : path[0]; // skip first path node (cause it was rounded to snap to grid)
 		const direction = node.subtract(unitActor.pos);
 		this._messageBroker.publishMessage(

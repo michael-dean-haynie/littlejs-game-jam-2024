@@ -92,10 +92,6 @@ export class UnitActor extends Actor {
 	get velocity(): Vector2 {
 		return this._engineObject.velocity;
 	}
-	// TODO: hide this
-	get engineObject(): UnitEngineObject {
-		return this._engineObject;
-	}
 
 	private readonly _orderQueue: Order[];
 
