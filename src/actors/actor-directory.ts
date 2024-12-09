@@ -3,34 +3,27 @@ import type { Actor } from "./actor";
 
 export class ActorDirectory {
 	constructor() {
-		this._actors = [];
 		this._actorMap = new Map<string, Actor>();
 		this._actorAliasMap = new Map<string, string>();
 	}
 
-	private readonly _actors: Actor[];
 	private readonly _actorMap: Map<string, Actor>;
 	private readonly _actorAliasMap: Map<string, string>;
 
 	get actors(): ReadonlyArray<Actor> {
-		return this._actors;
+		return [...this._actorMap.values()];
 	}
 
 	registerActor<T extends Actor>(actor: T, alias?: ActorDirectoryAlias): void {
-		this._actors.push(actor);
+		this._actorMap.set(actor.actorId, actor);
 		if (alias) {
-			this._actorAliasMap.set(alias, actor.actorId);
+			this.registerActorAlias(alias, actor.actorId);
 		}
 	}
 
 	unregisterActorById(actorId: string): void {
-		// remove from actors array
-		const actorIndex = this._actors.findIndex(
-			(actor) => actor.actorId === actorId,
-		);
-		if (actorIndex !== -1) {
-			this._actors.splice(actorIndex, 1);
-		}
+		// remove from actor map
+		this._actorMap.delete(actorId);
 
 		// remove from alias map
 		for (const [key, value] of this._actorAliasMap.entries()) {
@@ -51,15 +44,13 @@ export class ActorDirectory {
 
 	getActorById<T extends Actor>(
 		actorId: string,
-		// biome-ignore lint/suspicious/noExplicitAny: it's a constructor signature
 		type: { new (...args: any[]): T },
 	): T {
-		for (const actor of this._actors) {
-			if (actor instanceof type && actor.actorId === actorId) {
-				return actor;
-			}
+		const actor = this._actorMap.get(actorId);
+		if (actor instanceof type) {
+			return actor;
 		}
-		yeet("UNEXPECTED_NULLISH_VALUE");
+		throw new Error("actor instance was not expected type");
 	}
 
 	getActorIdByAlias(alias: ActorDirectoryAlias): string {
@@ -68,7 +59,6 @@ export class ActorDirectory {
 
 	getActorByAlias<T extends Actor>(
 		alias: ActorDirectoryAlias,
-		// biome-ignore lint/suspicious/noExplicitAny: it's a constructor signature
 		type: { new (...args: any[]): T },
 	): T {
 		const actorId =
