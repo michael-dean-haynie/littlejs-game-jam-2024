@@ -98,7 +98,7 @@ export class UnitActor extends Actor {
 	destroy(): void {
 		// destroy weapon actors
 		for (const weaponActorId of this._weaponActorIds) {
-			const weaponActor = this.actorDirectory.getActorById(
+			const weaponActor = this.actorDirectory.getActor(
 				weaponActorId,
 				WeaponActor,
 			);
@@ -163,7 +163,7 @@ export class UnitActor extends Actor {
 		this._hitpoints -= message.damage;
 		if (this.hitpoints <= 0) {
 			const killingUnitActor =
-				this.actorDirectory.getActorById<UnitActor>(
+				this.actorDirectory.getActor<UnitActor>(
 					message.damagingUnitActorId,
 					UnitActor,
 				) || yeet("UNEXPECTED_NULLISH_VALUE");

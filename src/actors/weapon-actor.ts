@@ -3,7 +3,7 @@ import { FireWeaponMessage } from "../messages/fire-weapon-message";
 import { ImpactUnitMessage } from "../messages/impact-unit-message";
 import type { Message } from "../messages/message";
 import type {
-	IntersectingRoutingRule,
+	IntersectingRayRoutingRule,
 	MessageRoutingRules,
 } from "../messages/message-routing-rules";
 import { DamageUnitMessage } from "../messages/take-damage-message";
@@ -56,10 +56,10 @@ export class WeaponActor extends Actor {
 		this._weaponCooldownStart = Date.now();
 
 		const unitActor =
-			this.actorDirectory.getActorById(this._unitActorId, UnitActor) ||
+			this.actorDirectory.getActor(this._unitActorId, UnitActor) ||
 			yeet("UNEXPECTED_NULLISH_VALUE");
 
-		const intersectingRules: IntersectingRoutingRule[] = [];
+		const intersectingRules: IntersectingRayRoutingRule[] = [];
 		const aoeRays = this.calculateRayCount(this.weaponType);
 		const templateRay = vec2()
 			.setAngle(unitActor.facingAngle, this.weaponType.range) // start in direction unit is facing
@@ -74,7 +74,6 @@ export class WeaponActor extends Actor {
 		}
 
 		const routeRules: MessageRoutingRules = {
-			actorType: UnitActor,
 			intersecting: intersectingRules,
 			excludeActorIds: [this._unitActorId],
 		};

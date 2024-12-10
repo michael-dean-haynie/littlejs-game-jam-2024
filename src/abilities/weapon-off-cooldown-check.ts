@@ -11,7 +11,7 @@ export class WeaponOffCooldownCheck extends AbilityCheck {
 	}
 
 	check(): boolean {
-		const weaponActor = this._actorDirectory.getActorById(
+		const weaponActor = this._actorDirectory.getActor(
 			this._weaponActorId,
 			WeaponActor,
 		);

@@ -13,11 +13,11 @@ export class UnitInRangeCheck extends AbilityCheck {
 	}
 
 	check(): boolean {
-		const castingUnitActor = this._actorDirectory.getActorById(
+		const castingUnitActor = this._actorDirectory.getActor(
 			this._castingUnitActorId,
 			UnitActor,
 		);
-		const targetUnitActor = this._actorDirectory.getActorById(
+		const targetUnitActor = this._actorDirectory.getActor(
 			this._targetUnitActorId,
 			UnitActor,
 		);

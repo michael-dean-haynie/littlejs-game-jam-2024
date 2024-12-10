@@ -6,7 +6,7 @@ import {
 	rgb,
 	vec2,
 } from "littlejsengine";
-import { UnitActor } from "../actors/unit-actor";
+import type { UnitActor } from "../actors/unit-actor";
 import { ImpactUnitMessage } from "../messages/impact-unit-message";
 import type { MessageBroker } from "../messages/message-broker";
 import { UnitTypes } from "../units/unit";
@@ -33,7 +33,7 @@ export class UnitEngineObject extends EngineObject {
 					new ImpactUnitMessage(
 						vec2().scale(0), // just need to flag as impacted
 					),
-					{ actorType: UnitActor, actorIds: [this.unitActor.actorId] },
+					{ actorIds: [this.unitActor.actorId] },
 				);
 			}
 		}

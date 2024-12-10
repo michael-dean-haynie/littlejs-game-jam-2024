@@ -18,3 +18,8 @@ test.skip("example 3", () => {
 	console.log(rand(3, 8));
 	console.log(rand(8, 3));
 });
+
+test("example 4", () => {
+	console.log(typeof []);
+	console.log(Array.isArray([]));
+});

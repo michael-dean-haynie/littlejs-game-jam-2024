@@ -14,7 +14,7 @@ export class UnitFlagCheck extends AbilityCheck {
 	}
 
 	check(): boolean {
-		const targetUnitActor = this._actorDirectory.getActorById(
+		const targetUnitActor = this._actorDirectory.getActor(
 			this._targetUnitActorId,
 			UnitActor,
 		);

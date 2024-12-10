@@ -30,7 +30,7 @@ export class MoveInDirectionAbility extends Ability {
 	}
 
 	protected applyEffects(): void {
-		const unitActor = this._actorDirectory.getActorById(
+		const unitActor = this._actorDirectory.getActor(
 			this.castingUnitActorId,
 			UnitActor,
 		);
@@ -66,7 +66,6 @@ export class MoveInDirectionAbility extends Ability {
 		this._messageBroker.publishMessage(
 			new ChangeUnitVelocityMessage(velocity, true),
 			{
-				actorType: UnitActor,
 				actorIds: [this.castingUnitActorId],
 			},
 		);

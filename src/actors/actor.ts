@@ -19,7 +19,7 @@ export abstract class Actor {
 	private readonly _messages: Message[];
 
 	destroy(): void {
-		this.actorDirectory.unregisterActorById(this.actorId);
+		this.actorDirectory.unregisterActor(this.actorId);
 		this.destroyed = true;
 	}
 

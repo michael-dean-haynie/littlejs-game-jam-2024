@@ -1,57 +1,65 @@
 import { isIntersecting } from "littlejsengine";
+import { Actor } from "../actors/actor";
 import type { ActorDirectory } from "../actors/actor-directory";
 import { UnitActor } from "../actors/unit-actor";
 import type { Message } from "./message";
-import type { MessageRoutingRules } from "./message-routing-rules";
+import type {
+	IntersectingRayRoutingRule,
+	MessageRoutingRules,
+} from "./message-routing-rules";
 
 export class MessageBroker {
 	constructor(private _actorDirectory: ActorDirectory) {}
 
 	/** right now defaults to no matches, multiple route data composed in AND fashion */
-	publishMessage<T extends Message>(
-		message: T,
-		rules: MessageRoutingRules = {},
-	): void {
-		for (const actor of this._actorDirectory.actors) {
-			// check for empty rules
-			if (!rules || !Object.keys(rules).length) {
-				continue;
+	publishMessage(message: Message, rules: MessageRoutingRules = {}): void {
+		if (!Object.keys(rules).length) {
+			return; // do nothing if there are no rules defined
+		}
+
+		let remaining: Map<string, Actor> | null = null;
+
+		if (rules.actorIds?.length) {
+			remaining = new Map<string, Actor>();
+			for (const actorId of rules.actorIds) {
+				remaining.set(actorId, this._actorDirectory.getActor(actorId, Actor));
+			}
+		}
+
+		if (rules.intersecting?.length) {
+			if (remaining === null) {
+				// narrowed down to unit actors - they are the only ones with engine objects
+				remaining = this._actorDirectory.getActorsByType(UnitActor);
 			}
 
-			// check actor type
-			if (rules.actorType && !(actor instanceof rules.actorType)) {
-				continue;
-			}
-
-			// check actor id
-			if (
-				rules.actorIds &&
-				!rules.actorIds.some((aid) => aid === actor.actorId)
-			) {
-				continue;
-			}
-
-			// check actor id excludion list
-			if (rules.excludeActorIds?.includes(actor.actorId)) {
-				continue;
-			}
-
-			// check intersecting rays
-			if (rules.intersecting && actor instanceof UnitActor) {
-				let doesIntersect = false;
-				for (const ray of rules.intersecting) {
-					if (isIntersecting(ray.start, ray.end, actor.pos, actor.size)) {
-						doesIntersect = true;
-						break;
+			// forced to iterate over each at this point
+			for (const [actorId, actor] of remaining.entries()) {
+				if (actor instanceof UnitActor) {
+					// check for intersection with rays
+					const doesIntersect = rules.intersecting.some((ray) =>
+						isIntersecting(ray.start, ray.end, actor.pos, actor.size),
+					);
+					if (!doesIntersect) {
+						remaining.delete(actorId);
 					}
 				}
-				if (!doesIntersect) {
-					continue;
+			}
+		}
+
+		if (rules.excludeActorIds?.length) {
+			if (remaining?.size) {
+				for (const [actorId, actor] of remaining.entries()) {
+					if (rules.excludeActorIds.includes(actorId)) {
+						remaining.delete(actorId);
+					}
 				}
 			}
+		}
 
-			// send message to actor
-			actor.receiveMessage(message);
+		if (remaining?.size) {
+			for (const [actorId, actor] of remaining.entries()) {
+				actor.receiveMessage(message);
+			}
 		}
 	}
 }

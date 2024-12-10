@@ -14,3 +14,7 @@ export function yeet(reason: YeetReason = "UNEXPECTED_NULLISH_VALUE"): never {
 export function roundToNearest(num: number, increment: number) {
 	return Math.round(num / increment) * increment;
 }
+
+/** generic constructor signature (allow abstract ctors too) */
+// biome-ignore lint/suspicious/noExplicitAny: meant to be any
+export type Constructor<T> = abstract new (...args: any[]) => T;

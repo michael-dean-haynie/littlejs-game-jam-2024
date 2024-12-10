@@ -11,7 +11,7 @@ export class UnitHasWeaponEquippedCheck extends AbilityCheck {
 	}
 
 	check(): boolean {
-		const castingUnitActor = this._actorDirectory.getActorById(
+		const castingUnitActor = this._actorDirectory.getActor(
 			this._castingUnitActorId,
 			UnitActor,
 		);

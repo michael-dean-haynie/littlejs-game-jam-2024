@@ -31,7 +31,7 @@ export class StopMovingAbility extends Ability {
 	}
 
 	protected applyEffects(): void {
-		const unitActor = this._actorDirectory.getActorById(
+		const unitActor = this._actorDirectory.getActor(
 			this.castingUnitActorId,
 			UnitActor,
 		);
@@ -41,7 +41,7 @@ export class StopMovingAbility extends Ability {
 				vec2().setAngle(unitActor.facingAngle, 0),
 				false,
 			),
-			{ actorType: UnitActor, actorIds: [this.castingUnitActorId] },
+			{ actorIds: [this.castingUnitActorId] },
 		);
 	}
 }

@@ -39,12 +39,12 @@ export class MoveIntoAttackRangeAbility extends Ability {
 	}
 
 	protected applyEffects(): void {
-		const unitActor = this._actorDirectory.getActorById(
+		const unitActor = this._actorDirectory.getActor(
 			this.castingUnitActorId,
 			UnitActor,
 		);
 
-		const targetUnitActor = this._actorDirectory.getActorById(
+		const targetUnitActor = this._actorDirectory.getActor(
 			this._targetUnitActorId,
 			UnitActor,
 		);
@@ -68,7 +68,6 @@ export class MoveIntoAttackRangeAbility extends Ability {
 				true,
 			),
 			{
-				actorType: UnitActor,
 				actorIds: [this.castingUnitActorId],
 			},
 		);

@@ -62,7 +62,7 @@ export class InputActor extends Actor {
 				new IssueOrderMessage(
 					new AttackOrder(this.actorDirectory, this.messageBroker),
 				),
-				{ actorType: UnitActor, actorIds: [playerUnitActorId] },
+				{ actorIds: [playerUnitActorId] },
 			);
 		}
 	}
@@ -109,7 +109,7 @@ export class InputActor extends Actor {
 					new IssueOrderMessage(
 						new StopMovingOrder(this.actorDirectory, this.messageBroker),
 					),
-					{ actorType: UnitActor, actorIds: [playerUnitActorId] },
+					{ actorIds: [playerUnitActorId] },
 				);
 			} else {
 				this.messageBroker.publishMessage(
@@ -120,7 +120,7 @@ export class InputActor extends Actor {
 							this.messageBroker,
 						),
 					),
-					{ actorType: UnitActor, actorIds: [playerUnitActorId] },
+					{ actorIds: [playerUnitActorId] },
 				);
 			}
 		}

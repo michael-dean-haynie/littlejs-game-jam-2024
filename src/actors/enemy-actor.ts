@@ -24,7 +24,7 @@ export class EnemyActor extends Actor {
 			yeet("UNEXPECTED_NULLISH_VALUE");
 
 		// create enemy units
-		for (let index = 0; index < 500; index++) {
+		for (let index = 0; index < 50; index++) {
 			// spawn
 			const unitActor = new UnitActor(
 				UnitTypes.rabbit,
@@ -44,7 +44,6 @@ export class EnemyActor extends Actor {
 					),
 				),
 				{
-					actorType: UnitActor,
 					actorIds: [unitActor.actorId],
 				},
 			);

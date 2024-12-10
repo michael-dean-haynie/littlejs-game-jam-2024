@@ -20,7 +20,7 @@ export class AttackUnitAbility extends Ability {
 	}
 
 	protected initializeAbility(): void {
-		const castingUnitActor = this._actorDirectory.getActorById(
+		const castingUnitActor = this._actorDirectory.getActor(
 			this.castingUnitActorId,
 			UnitActor,
 		);
@@ -32,7 +32,7 @@ export class AttackUnitAbility extends Ability {
 			),
 		);
 
-		const weaponActor = this._actorDirectory.getActorById(
+		const weaponActor = this._actorDirectory.getActor(
 			castingUnitActor.equippedWeaponActorId ??
 				yeet("UNEXPECTED_NULLISH_VALUE"), // should be validated to exist by previous check
 			WeaponActor,
@@ -53,12 +53,11 @@ export class AttackUnitAbility extends Ability {
 	}
 
 	protected applyEffects(): void {
-		const castingUnitActor = this._actorDirectory.getActorById(
+		const castingUnitActor = this._actorDirectory.getActor(
 			this.castingUnitActorId,
 			UnitActor,
 		);
 		this._messageBroker.publishMessage(new FireWeaponMessage(), {
-			actorType: WeaponActor,
 			actorIds: [
 				castingUnitActor.equippedWeaponActorId ??
 					yeet("UNEXPECTED_NULLISH_VALUE"),
