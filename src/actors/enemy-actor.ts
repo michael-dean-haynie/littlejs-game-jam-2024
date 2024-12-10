@@ -14,39 +14,19 @@ export class EnemyActor extends Actor {
 		super(...params);
 
 		this.actorDirectory.registerActorAlias("enemyActor", this.actorId);
+		this._targetActorCount = 50;
+	}
 
-		const pathingActor =
-			this.actorDirectory.getActorByAlias("pathingActor", PathingActor) ??
-			yeet("UNEXPECTED_NULLISH_VALUE");
+	private _targetActorCount: number;
 
-		const playerUnitActor =
-			this.actorDirectory.getActorByAlias("playerUnitActor", UnitActor) ??
-			yeet("UNEXPECTED_NULLISH_VALUE");
+	update(): void {
+		super.update();
 
-		// create enemy units
-		for (let index = 0; index < 50; index++) {
-			// spawn
-			const unitActor = new UnitActor(
-				UnitTypes.rabbit,
-				pathingActor.getRandomSpawnPoint(),
-				"enemy",
-				this.actorDirectory,
-				this.messageBroker,
-			);
-
-			// attack
-			this.messageBroker.publishMessage(
-				new IssueOrderMessage(
-					new AttackUnitOrder(
-						this.actorDirectory,
-						this.messageBroker,
-						playerUnitActor.actorId,
-					),
-				),
-				{
-					actorIds: [unitActor.actorId],
-				},
-			);
+		if (
+			this.actorDirectory.getActorsByType(UnitActor).size <
+			this._targetActorCount
+		) {
+			this.spawnEnemy();
 		}
 	}
 
@@ -60,5 +40,38 @@ export class EnemyActor extends Actor {
 		if (message.deadUnitTeam === "enemy") {
 			// make another one?
 		}
+	}
+
+	private spawnEnemy(): void {
+		const pathingActor =
+			this.actorDirectory.getActorByAlias("pathingActor", PathingActor) ??
+			yeet("UNEXPECTED_NULLISH_VALUE");
+
+		const playerUnitActor =
+			this.actorDirectory.getActorByAlias("playerUnitActor", UnitActor) ??
+			yeet("UNEXPECTED_NULLISH_VALUE");
+
+		// spawn
+		const unitActor = new UnitActor(
+			UnitTypes.rabbit,
+			pathingActor.getRandomSpawnPoint(),
+			"enemy",
+			this.actorDirectory,
+			this.messageBroker,
+		);
+
+		// attack
+		this.messageBroker.publishMessage(
+			new IssueOrderMessage(
+				new AttackUnitOrder(
+					this.actorDirectory,
+					this.messageBroker,
+					playerUnitActor.actorId,
+				),
+			),
+			{
+				actorIds: [unitActor.actorId],
+			},
+		);
 	}
 }
