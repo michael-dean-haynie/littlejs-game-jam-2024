@@ -26,6 +26,7 @@
 		"vitest": "^2.1.6"
 	},
 	"dependencies": {
+		"alea": "^1.0.1",
 		"fast-astar": "^1.0.6",
 		"littlejsengine": "^1.10.4",
 		"noisejs": "^2.1.0",

@@ -22,12 +22,13 @@ export class EnemyActor extends Actor {
 	update(): void {
 		super.update();
 
-		if (
-			this.actorDirectory.getActorsByType(UnitActor).size <
-			this._targetActorCount
-		) {
-			this.spawnEnemy();
-		}
+		// TODO: temp disabled
+		// if (
+		// 	this.actorDirectory.getActorsByType(UnitActor).size <
+		// 	this._targetActorCount
+		// ) {
+		// 	this.spawnEnemy();
+		// }
 	}
 
 	protected handleMessage<T extends Message>(message: T): void {

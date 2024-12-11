@@ -3,8 +3,50 @@
 <head>
     <title>LittleJS Game Jam 2024</title>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
     <script src="src/index.ts" type="module"></script>
+    <div id="ui-container" class="hidden">
+        <button id="seed" type="button">Generate New Seed</button>
+        
+        <hr>
+
+        <label for="noiseType">Select the type of noise to use:</label>
+        <div><!-- spacer --></div>
+        <select name="noiseType" id="noiseType">
+            <option value="plain">Plain Noise</option>
+            <option value="simplex">Simplex Noise</option>
+        </select>
+
+        <hr>
+
+        <div>
+            <input type="range" id="threshold" name="threshold" min="-1" max="1" step="0.01" />
+            <label for="threshold">Threshold (-1 - 1)</label>
+        </div>
+
+        <div id="plainNoiseFormGroup">
+        </div>
+
+        <div id="simplexNoiseFormGroup" class="hidden">
+            <div>
+                <input type="range" id="scale" name="scale" min="1" max="50" step="0.1" />
+                <label for="scale">Scale (1 - 50)</label>
+            </div>
+            <div>
+                <input type="range" id="octaves" name="octaves" min="1" max="5" step="1" />
+                <label for="octaves">Octaves (1 - 5)</label>
+            </div>
+            <div>
+                <input type="range" id="persistance" name="persistance" min="0" max="1" step="0.01" />
+                <label for="persistance">Persistance (0 - 1)</label>
+            </div>
+            <div>
+                <input type="range" id="lacunarity" name="lacunarity" min="1" max="5" step=".01" />
+                <label for="lacunarity">Lacunarity (1 - 5)</label>
+            </div>
+        </div>
+    </div>
 </body>

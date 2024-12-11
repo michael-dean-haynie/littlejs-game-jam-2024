@@ -1,7 +1,8 @@
+import alea from "alea";
 import { Astar, Grid } from "fast-astar";
 import {
+	RandomGenerator,
 	type Vector2,
-	debugRect,
 	engineObjects,
 	isOverlapping,
 	rand,
@@ -9,10 +10,10 @@ import {
 	vec2,
 } from "littlejsengine";
 import { createNoise2D } from "simplex-noise";
+import { v4 } from "uuid";
 import { ObstacleEngineObject } from "../engine-objects/obstacle-engine-object";
 import { PlayerObstacleEngineObject } from "../engine-objects/player-obstacle-engine-object";
 import { TreeEngineObject } from "../engine-objects/tree-engine-object";
-import type { UnitEngineObject } from "../engine-objects/unit-engine-object";
 import type { Message } from "../messages/message";
 import { roundToNearest, yeet } from "../utilities/utilities";
 import { Actor } from "./actor";
@@ -33,6 +34,7 @@ export class PathingActor extends Actor {
 		this._pathCache = new Map<number, Vector2[]>();
 		this._grid = new Grid({ col: 10, row: 10 }); // will be replaced
 		this._astar = new Astar(this._grid); // will be replaced
+		this._seed = Math.random();
 
 		this.generateObstacles();
 		this.definePathingGrid();
@@ -43,6 +45,14 @@ export class PathingActor extends Actor {
 	private _grid: Grid;
 
 	private _astar: Astar;
+
+	private _seed: number;
+	get seed(): number {
+		return this._seed;
+	}
+	set seed(value: number) {
+		this._seed = value;
+	}
 
 	protected handleMessage<T extends Message>(message: T): void {}
 
@@ -190,15 +200,83 @@ export class PathingActor extends Actor {
 			vec2(this.worldSize.x, 1),
 		);
 
-		// TRYING OUT SIMPLEX NOISE
-		const noise2d = createNoise2D();
+		// TODO: temp disable
+		// this.generateTreesSimplex(1, 1, 1, 1);
+	}
+
+	generateTreesPlain(threshold: number): void {
+		this.clearTrees();
+
+		const prng = alea(this._seed);
+
 		for (let x = 0; x < this.worldSize.x; x++) {
 			for (let y = 0; y < this.worldSize.y; y++) {
-				// console.log(`(${x},${y}): ${noise2d(x, y)}`);
-				const value = noise2d(x, y);
-				if (value > 0.75) {
+				const value = prng() * 2 - 1; // -1 - 1
+				if (value < threshold) {
 					const obstacle = new TreeEngineObject(true, vec2(x, y), vec2(1, 1));
 				}
+			}
+		}
+	}
+
+	generateTreesSimplex(
+		threshold: number, // -1 - 1
+		scale: number, // 1-20?
+		octaves: number, // > 1 (maybe 1-5)
+		persistance: number, // 0 - 1
+		lacunarity: number, // > 1 (maybe 1-5)
+	): void {
+		this.clearTrees();
+
+		if (scale <= 0) {
+			// biome-ignore lint: reasignment of param is safeguarding
+			scale = 0.00001;
+		}
+
+		// init 2d array
+		const noiseMap = Array.from({ length: this.worldSize.x }, () =>
+			Array(this.worldSize.y).fill(0),
+		);
+
+		// fill in noise map
+		const prng = alea(this._seed);
+		const noise2d = createNoise2D(prng);
+		for (let x = 0; x < this.worldSize.x; x++) {
+			for (let y = 0; y < this.worldSize.y; y++) {
+				let amplitude = 1;
+				let frequency = 1;
+				let noiseHeight = 0;
+
+				for (let octave = 0; octave < octaves; octave++) {
+					const sampleX = (x / scale) * frequency;
+					const sampleY = (y / scale) * frequency;
+
+					const simplexValue = noise2d(sampleX, sampleY); // value between -1 and 1
+					noiseHeight += simplexValue * amplitude;
+					// noiseMap[x][y] = simplexValue;
+
+					amplitude *= persistance;
+					frequency *= lacunarity;
+				}
+
+				noiseMap[x][y] = noiseHeight;
+			}
+		}
+
+		// create trees based off of noise map values
+		for (let x = 0; x < this.worldSize.x; x++) {
+			for (let y = 0; y < this.worldSize.y; y++) {
+				if (noiseMap[x][y] < threshold) {
+					const tree = new TreeEngineObject(true, vec2(x, y), vec2(1, 1));
+				}
+			}
+		}
+	}
+
+	private clearTrees(): void {
+		for (const eo of engineObjects) {
+			if (eo instanceof TreeEngineObject) {
+				eo.destroy();
 			}
 		}
 	}

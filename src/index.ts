@@ -19,6 +19,7 @@ import { WeaponActor } from "./actors/weapon-actor";
 import { ObstacleEngineObject } from "./engine-objects/obstacle-engine-object";
 import { PlayerObstacleEngineObject } from "./engine-objects/player-obstacle-engine-object";
 import { MessageBroker } from "./messages/message-broker";
+import { UI } from "./ui/ui";
 
 // setShowSplashScreen(true);
 
@@ -35,6 +36,7 @@ let messageBroker: MessageBroker;
 let inputActor: InputActor;
 let playerActor: PlayerActor;
 let enemyActor: EnemyActor;
+let ui: UI;
 
 ///////////////////////////////////////////////////////////////////////////////
 function gameInit() {
@@ -62,7 +64,8 @@ function gameInit() {
 	// TODO: for debugging - remove
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	(window as any).pathingActor = pathingActor;
-	inputActor = new InputActor(actorDirectory, messageBroker);
+	ui = new UI(pathingActor);
+	inputActor = new InputActor(ui, actorDirectory, messageBroker);
 
 	setCanvasFixedSize(canvasSize);
 	setCameraPos(worldCenter);

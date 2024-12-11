@@ -15,18 +15,19 @@ export class PlayerActor extends Actor {
 			this.actorDirectory.getActorByAlias("pathingActor", PathingActor) ??
 			yeet("UNEXPECTED_NULLISH_VALUE");
 
-		// create prey unit
-		const unitActor = new UnitActor(
-			UnitTypes.prey,
-			pathingActor.worldCenter,
-			"player",
-			this.actorDirectory,
-			this.messageBroker,
-		);
-		this.actorDirectory.registerActorAlias(
-			"playerUnitActor",
-			unitActor.actorId,
-		);
+		// TODO: temp remove
+		// // create prey unit
+		// const unitActor = new UnitActor(
+		// 	UnitTypes.prey,
+		// 	pathingActor.worldCenter,
+		// 	"player",
+		// 	this.actorDirectory,
+		// 	this.messageBroker,
+		// );
+		// this.actorDirectory.registerActorAlias(
+		// 	"playerUnitActor",
+		// 	unitActor.actorId,
+		// );
 	}
 
 	protected handleMessage<T extends Message>(message: T): void {

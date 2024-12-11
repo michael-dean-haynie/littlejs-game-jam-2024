@@ -9,12 +9,16 @@ import type { Message } from "../messages/message";
 import { AttackOrder } from "../orders/attack-order";
 import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
 import { StopMovingOrder } from "../orders/stop-moving-order";
+import type { UI } from "../ui/ui";
 import { yeet } from "../utilities/utilities";
 import { Actor } from "./actor";
 import { UnitActor } from "./unit-actor";
 
 export class InputActor extends Actor {
-	constructor(...params: ConstructorParameters<typeof Actor>) {
+	constructor(
+		private readonly _ui: UI,
+		...params: ConstructorParameters<typeof Actor>
+	) {
 		super(...params);
 		this._stack = [];
 	}
@@ -50,20 +54,23 @@ export class InputActor extends Actor {
 
 	// overwrite super, not extend since this input actor should only publish messages, not receive
 	update(): void {
-		this.handleMovementInput();
+		// TODO: temp disable
+		// this.handleMovementInput();
+		// // attack
+		// if (mouseWasPressed(0)) {
+		// 	const playerUnitActorId =
+		// 		this.actorDirectory.getActorIdByAlias("playerUnitActor") ||
+		// 		yeet("UNEXPECTED_NULLISH_VALUE");
+		// 	this.messageBroker.publishMessage(
+		// 		new IssueOrderMessage(
+		// 			new AttackOrder(this.actorDirectory, this.messageBroker),
+		// 		),
+		// 		{ actorIds: [playerUnitActorId] },
+		// 	);
+		// }
 
-		// attack
-		if (mouseWasPressed(0)) {
-			const playerUnitActorId =
-				this.actorDirectory.getActorIdByAlias("playerUnitActor") ||
-				yeet("UNEXPECTED_NULLISH_VALUE");
-
-			this.messageBroker.publishMessage(
-				new IssueOrderMessage(
-					new AttackOrder(this.actorDirectory, this.messageBroker),
-				),
-				{ actorIds: [playerUnitActorId] },
-			);
+		if (keyWasPressed("KeyZ")) {
+			this._ui.toggleUI();
 		}
 	}
 
