@@ -99,10 +99,8 @@ export class UnitActor extends Actor {
 	destroy(): void {
 		// destroy weapon actors
 		for (const weaponActorId of this._weaponActorIds) {
-			const weaponActor = this.actorDirectory.getActor(
-				weaponActorId,
-				WeaponActor,
-			);
+			const weaponActor =
+				this.actorDirectory.getActor(weaponActorId, WeaponActor) ?? yeet();
 			weaponActor.destroy();
 		}
 
@@ -183,8 +181,8 @@ export class UnitActor extends Actor {
 				),
 				{
 					actorIds: [
-						this.actorDirectory.getActorIdByAlias("playerActor"),
-						this.actorDirectory.getActorIdByAlias("enemyActor"),
+						this.actorDirectory.getActorIdByAlias("playerActor") ?? yeet(),
+						this.actorDirectory.getActorIdByAlias("enemyActor") ?? yeet(),
 					],
 				},
 			);

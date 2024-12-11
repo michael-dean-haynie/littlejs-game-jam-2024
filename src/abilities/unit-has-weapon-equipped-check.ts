@@ -1,5 +1,6 @@
 import type { ActorDirectory } from "../actors/actor-directory";
 import { UnitActor } from "../actors/unit-actor";
+import { yeet } from "../utilities/utilities";
 import { AbilityCheck } from "./ability-check";
 
 export class UnitHasWeaponEquippedCheck extends AbilityCheck {
@@ -11,10 +12,9 @@ export class UnitHasWeaponEquippedCheck extends AbilityCheck {
 	}
 
 	check(): boolean {
-		const castingUnitActor = this._actorDirectory.getActor(
-			this._castingUnitActorId,
-			UnitActor,
-		);
+		const castingUnitActor =
+			this._actorDirectory.getActor(this._castingUnitActorId, UnitActor) ??
+			yeet();
 		return castingUnitActor.equippedWeaponActorId !== null;
 	}
 }

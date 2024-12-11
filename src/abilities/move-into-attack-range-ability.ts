@@ -4,6 +4,7 @@ import { PathingActor } from "../actors/pathing-actor";
 import { UnitActor } from "../actors/unit-actor";
 import { ChangeUnitVelocityMessage } from "../messages/change-unit-velocity-message";
 import type { MessageBroker } from "../messages/message-broker";
+import { yeet } from "../utilities/utilities";
 import { Ability } from "./ability";
 import { UnitFlagCheck } from "./unit-flag-check";
 import { UnitHasWeaponEquippedCheck } from "./unit-has-weapon-equipped-check";
@@ -39,20 +40,17 @@ export class MoveIntoAttackRangeAbility extends Ability {
 	}
 
 	protected applyEffects(): void {
-		const unitActor = this._actorDirectory.getActor(
-			this.castingUnitActorId,
-			UnitActor,
-		);
+		const unitActor =
+			this._actorDirectory.getActor(this.castingUnitActorId, UnitActor) ??
+			yeet();
 
-		const targetUnitActor = this._actorDirectory.getActor(
-			this._targetUnitActorId,
-			UnitActor,
-		);
+		const targetUnitActor =
+			this._actorDirectory.getActor(this._targetUnitActorId, UnitActor) ??
+			yeet();
 
-		const pathingActor = this._actorDirectory.getActorByAlias(
-			"pathingActor",
-			PathingActor,
-		);
+		const pathingActor =
+			this._actorDirectory.getActorByAlias("pathingActor", PathingActor) ??
+			yeet();
 
 		const path = pathingActor.getPath(unitActor.pos, targetUnitActor.pos);
 

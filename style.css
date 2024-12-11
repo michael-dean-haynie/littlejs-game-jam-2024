@@ -6,8 +6,8 @@
 	position: absolute;
 	z-index: 1;
 	/* define ui dimensions in terms of view-width to scale neatly with canvas */
-	width: 10vw;
-	height: 10vw;
+	width: 15vw;
+	height: 15vw;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);

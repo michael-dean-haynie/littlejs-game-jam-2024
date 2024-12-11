@@ -1,5 +1,6 @@
 import type { ActorDirectory } from "../actors/actor-directory";
 import { WeaponActor } from "../actors/weapon-actor";
+import { yeet } from "../utilities/utilities";
 import { AbilityCheck } from "./ability-check";
 
 export class WeaponOffCooldownCheck extends AbilityCheck {
@@ -11,10 +12,8 @@ export class WeaponOffCooldownCheck extends AbilityCheck {
 	}
 
 	check(): boolean {
-		const weaponActor = this._actorDirectory.getActor(
-			this._weaponActorId,
-			WeaponActor,
-		);
+		const weaponActor =
+			this._actorDirectory.getActor(this._weaponActorId, WeaponActor) ?? yeet();
 		return weaponActor.offCooldown;
 	}
 }

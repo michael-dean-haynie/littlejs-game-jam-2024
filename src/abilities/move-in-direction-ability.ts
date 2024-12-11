@@ -4,6 +4,7 @@ import type { Direction } from "../actors/input-actor";
 import { UnitActor } from "../actors/unit-actor";
 import { ChangeUnitVelocityMessage } from "../messages/change-unit-velocity-message";
 import type { MessageBroker } from "../messages/message-broker";
+import { yeet } from "../utilities/utilities";
 import { Ability } from "./ability";
 import { UnitFlagCheck } from "./unit-flag-check";
 
@@ -30,10 +31,9 @@ export class MoveInDirectionAbility extends Ability {
 	}
 
 	protected applyEffects(): void {
-		const unitActor = this._actorDirectory.getActor(
-			this.castingUnitActorId,
-			UnitActor,
-		);
+		const unitActor =
+			this._actorDirectory.getActor(this.castingUnitActorId, UnitActor) ??
+			yeet();
 
 		const ms = unitActor.unitType.moveSpeed;
 		let velocity: Vector2 = vec2(); // will be overwritten

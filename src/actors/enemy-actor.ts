@@ -14,7 +14,7 @@ export class EnemyActor extends Actor {
 		super(...params);
 
 		this.actorDirectory.registerActorAlias("enemyActor", this.actorId);
-		this._targetActorCount = 50;
+		this._targetActorCount = 10;
 	}
 
 	private _targetActorCount: number;
@@ -22,13 +22,12 @@ export class EnemyActor extends Actor {
 	update(): void {
 		super.update();
 
-		// TODO: temp disabled
-		// if (
-		// 	this.actorDirectory.getActorsByType(UnitActor).size <
-		// 	this._targetActorCount
-		// ) {
-		// 	this.spawnEnemy();
-		// }
+		if (
+			this.actorDirectory.getActorsByType(UnitActor).size <
+			this._targetActorCount
+		) {
+			this.spawnEnemy();
+		}
 	}
 
 	protected handleMessage<T extends Message>(message: T): void {

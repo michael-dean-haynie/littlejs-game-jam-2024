@@ -1,12 +1,11 @@
-import { type Vector2, vec2 } from "littlejsengine";
+import { vec2 } from "littlejsengine";
 import type { ActorDirectory } from "../actors/actor-directory";
 import type { Direction } from "../actors/input-actor";
 import { UnitActor } from "../actors/unit-actor";
 import { ChangeUnitFacingAngleMessage } from "../messages/change-unit-facing-angle-message";
-import { ChangeUnitVelocityMessage } from "../messages/change-unit-velocity-message";
 import type { MessageBroker } from "../messages/message-broker";
+import { yeet } from "../utilities/utilities";
 import { Ability } from "./ability";
-import { UnitFlagCheck } from "./unit-flag-check";
 
 export class FaceDirectionAbility extends Ability {
 	constructor(
@@ -21,10 +20,9 @@ export class FaceDirectionAbility extends Ability {
 	protected initializeAbility(): void {}
 
 	protected applyEffects(): void {
-		const unitActor = this._actorDirectory.getActor(
-			this.castingUnitActorId,
-			UnitActor,
-		);
+		const unitActor =
+			this._actorDirectory.getActor(this.castingUnitActorId, UnitActor) ??
+			yeet();
 
 		const ms = unitActor.unitType.moveSpeed;
 		let angle = 0; // will be overwritten

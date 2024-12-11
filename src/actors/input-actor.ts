@@ -12,7 +12,6 @@ import { StopMovingOrder } from "../orders/stop-moving-order";
 import type { UI } from "../ui/ui";
 import { yeet } from "../utilities/utilities";
 import { Actor } from "./actor";
-import { UnitActor } from "./unit-actor";
 
 export class InputActor extends Actor {
 	constructor(
@@ -20,6 +19,7 @@ export class InputActor extends Actor {
 		...params: ConstructorParameters<typeof Actor>
 	) {
 		super(...params);
+		this.actorDirectory.registerActorAlias("inputActor", this.actorId);
 		this._stack = [];
 	}
 
@@ -54,20 +54,20 @@ export class InputActor extends Actor {
 
 	// overwrite super, not extend since this input actor should only publish messages, not receive
 	update(): void {
-		// TODO: temp disable
-		// this.handleMovementInput();
-		// // attack
-		// if (mouseWasPressed(0)) {
-		// 	const playerUnitActorId =
-		// 		this.actorDirectory.getActorIdByAlias("playerUnitActor") ||
-		// 		yeet("UNEXPECTED_NULLISH_VALUE");
-		// 	this.messageBroker.publishMessage(
-		// 		new IssueOrderMessage(
-		// 			new AttackOrder(this.actorDirectory, this.messageBroker),
-		// 		),
-		// 		{ actorIds: [playerUnitActorId] },
-		// 	);
-		// }
+		this.handleMovementInput();
+		// attack
+		if (mouseWasPressed(0)) {
+			const playerUnitActorId =
+				this.actorDirectory.getActorIdByAlias("playerUnitActor");
+			if (playerUnitActorId) {
+				this.messageBroker.publishMessage(
+					new IssueOrderMessage(
+						new AttackOrder(this.actorDirectory, this.messageBroker),
+					),
+					{ actorIds: [playerUnitActorId] },
+				);
+			}
+		}
 
 		if (keyWasPressed("KeyZ")) {
 			this._ui.toggleUI();
@@ -77,8 +77,10 @@ export class InputActor extends Actor {
 	private handleMovementInput(): void {
 		// NOTE: WASD also auto-maps to arrow keys
 		const playerUnitActorId =
-			this.actorDirectory.getActorIdByAlias("playerUnitActor") ||
-			yeet("UNEXPECTED_NULLISH_VALUE");
+			this.actorDirectory.getActorIdByAlias("playerUnitActor");
+		if (!playerUnitActorId) {
+			return; // short circut if unit does not exist
+		}
 
 		const prevDirection = this.currentDirection;
 

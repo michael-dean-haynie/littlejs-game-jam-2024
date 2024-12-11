@@ -32,15 +32,14 @@ export class MoveIntoAttackRangeOrder extends Order {
 			}
 		}
 		if (abilityStage === "complete") {
-			const castingUnitActor = this.actorDirectory.getActor(
-				this.unitActorId,
-				UnitActor,
-			);
-			const weaponActor = this.actorDirectory.getActor(
-				castingUnitActor.equippedWeaponActorId ??
-					yeet("UNEXPECTED_NULLISH_VALUE"),
-				WeaponActor,
-			);
+			const castingUnitActor =
+				this.actorDirectory.getActor(this.unitActorId, UnitActor) ?? yeet();
+			const weaponActor =
+				this.actorDirectory.getActor(
+					castingUnitActor.equippedWeaponActorId ??
+						yeet("UNEXPECTED_NULLISH_VALUE"),
+					WeaponActor,
+				) ?? yeet();
 			const check = new UnitInRangeCheck(
 				this.actorDirectory,
 				this.unitActorId,

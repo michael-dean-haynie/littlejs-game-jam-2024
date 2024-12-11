@@ -20,6 +20,15 @@ import { Actor } from "./actor";
 
 export type AstarCoords = [x: number, y: number];
 
+export interface TreeNoiseParams {
+	noiseType: "plain" | "simplex";
+	threshold: number; // -1 - 1
+	scale?: number; // 1-20?
+	octaves?: number; // > 1 (maybe 1-5)
+	persistance?: number; // 0 - 1
+	lacunarity?: number; // > 1 (maybe 1-5)
+}
+
 export class PathingActor extends Actor {
 	constructor(
 		public readonly worldSize: Vector2,
@@ -35,9 +44,6 @@ export class PathingActor extends Actor {
 		this._grid = new Grid({ col: 10, row: 10 }); // will be replaced
 		this._astar = new Astar(this._grid); // will be replaced
 		this._seed = Math.random();
-
-		this.generateObstacles();
-		this.definePathingGrid();
 	}
 
 	private _pathCache: Map<number, Vector2[]>;
@@ -147,7 +153,7 @@ export class PathingActor extends Actor {
 		return x1 * 1000000 + y1 * 10000 + x2 * 100 + y2; // good as long as grid doesn't exceed 100x100
 	}
 
-	private generateObstacles() {
+	generateObstacles() {
 		// install player obstacles at arena edges (just outside of arena size)
 		const left = new PlayerObstacleEngineObject(
 			vec2(
@@ -199,12 +205,34 @@ export class PathingActor extends Actor {
 			vec2(this.worldSize.x / 2, 0.5),
 			vec2(this.worldSize.x, 1),
 		);
-
-		// TODO: temp disable
-		// this.generateTreesSimplex(1, 1, 1, 1);
 	}
 
-	generateTreesPlain(threshold: number): void {
+	generateTrees(params: TreeNoiseParams): void {
+		const { noiseType, threshold } = params;
+		if (noiseType === "plain") {
+			this.generateTreesPlain(threshold);
+		} else if (noiseType === "simplex") {
+			const { scale, octaves, persistance, lacunarity } = params;
+			if (
+				scale === undefined ||
+				octaves === undefined ||
+				persistance === undefined ||
+				lacunarity === undefined
+			) {
+				throw new Error("missing params");
+			}
+
+			this.generateTreesSimplex(
+				threshold,
+				scale,
+				octaves,
+				persistance,
+				lacunarity,
+			);
+		}
+	}
+
+	private generateTreesPlain(threshold: number): void {
 		this.clearAllTrees();
 
 		const prng = alea(this._seed);
@@ -221,7 +249,7 @@ export class PathingActor extends Actor {
 		this.clearTreesInSpawningAreas();
 	}
 
-	generateTreesSimplex(
+	private generateTreesSimplex(
 		threshold: number, // -1 - 1
 		scale: number, // 1-20?
 		octaves: number, // > 1 (maybe 1-5)

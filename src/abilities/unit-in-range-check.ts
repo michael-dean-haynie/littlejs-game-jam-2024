@@ -1,5 +1,6 @@
 import type { ActorDirectory } from "../actors/actor-directory";
 import { UnitActor } from "../actors/unit-actor";
+import { yeet } from "../utilities/utilities";
 import { AbilityCheck } from "./ability-check";
 
 export class UnitInRangeCheck extends AbilityCheck {
@@ -13,14 +14,12 @@ export class UnitInRangeCheck extends AbilityCheck {
 	}
 
 	check(): boolean {
-		const castingUnitActor = this._actorDirectory.getActor(
-			this._castingUnitActorId,
-			UnitActor,
-		);
-		const targetUnitActor = this._actorDirectory.getActor(
-			this._targetUnitActorId,
-			UnitActor,
-		);
+		const castingUnitActor =
+			this._actorDirectory.getActor(this._castingUnitActorId, UnitActor) ??
+			yeet();
+		const targetUnitActor =
+			this._actorDirectory.getActor(this._targetUnitActorId, UnitActor) ??
+			yeet();
 		return (
 			castingUnitActor.pos.distance(targetUnitActor.pos) -
 				targetUnitActor.size.x / 2 <=

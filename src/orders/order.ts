@@ -51,11 +51,6 @@ export abstract class Order {
 	}
 
 	tryToProgress(): OrderStage {
-		// TODO: remove
-		if (this instanceof AttackUnitOrder) {
-			const foo = 1;
-		}
-
 		// init
 		if (this.stage === "init") {
 			this._stage = "in progress";

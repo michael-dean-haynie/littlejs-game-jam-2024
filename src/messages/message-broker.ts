@@ -2,6 +2,7 @@ import { isIntersecting } from "littlejsengine";
 import { Actor } from "../actors/actor";
 import type { ActorDirectory } from "../actors/actor-directory";
 import { UnitActor } from "../actors/unit-actor";
+import { yeet } from "../utilities/utilities";
 import type { Message } from "./message";
 import type {
 	IntersectingRayRoutingRule,
@@ -22,7 +23,10 @@ export class MessageBroker {
 		if (rules.actorIds?.length) {
 			remaining = new Map<string, Actor>();
 			for (const actorId of rules.actorIds) {
-				remaining.set(actorId, this._actorDirectory.getActor(actorId, Actor));
+				remaining.set(
+					actorId,
+					this._actorDirectory.getActor(actorId, Actor) ?? yeet(),
+				);
 			}
 		}
 

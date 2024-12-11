@@ -39,10 +39,12 @@ export class ActorDirectory {
 	unregisterActor(actorId: string): void {
 		// remove from ctor map
 		const actor = this.getActor(actorId, Actor);
-		const actorCtor = actor.constructor as Constructor<Actor>;
-		const ctorActors = this._actorCtorMap.get(actorCtor);
-		if (ctorActors) {
-			ctorActors.delete(actorId);
+		if (actor) {
+			const actorCtor = actor.constructor as Constructor<Actor>;
+			const ctorActors = this._actorCtorMap.get(actorCtor);
+			if (ctorActors) {
+				ctorActors.delete(actorId);
+			}
 		}
 
 		// remove from alias map
@@ -65,23 +67,28 @@ export class ActorDirectory {
 		this._actorAliasMap.delete(alias);
 	}
 
-	getActorIdByAlias(alias: ActorDirectoryAlias): string {
-		return this._actorAliasMap.get(alias) || yeet("UNEXPECTED_NULLISH_VALUE");
+	getActorIdByAlias(alias: ActorDirectoryAlias): string | undefined {
+		return this._actorAliasMap.get(alias);
 	}
 
 	getActorByAlias<T extends Actor>(
 		alias: ActorDirectoryAlias,
 		type: Constructor<T>,
-	): T {
-		const actorId =
-			this.getActorIdByAlias(alias) ?? yeet("UNEXPECTED_NULLISH_VALUE");
+	): T | undefined {
+		const actorId = this.getActorIdByAlias(alias);
+		if (actorId === undefined) {
+			return undefined;
+		}
 		return this.getActor<T>(actorId, type);
 	}
 
-	getActor<T extends Actor>(actorId: string, type: Constructor<T>): T {
+	getActor<T extends Actor>(
+		actorId: string,
+		type: Constructor<T>,
+	): T | undefined {
 		const actor = this._actorMap.get(actorId);
 		if (!actor) {
-			throw new Error("could not find actor");
+			return undefined;
 		}
 		if (actor instanceof type) {
 			return actor;
@@ -96,6 +103,21 @@ export class ActorDirectory {
 		}
 		return new Map<string, T>();
 	}
+
+	/** destroy all but a few fundamental actors */
+	resetActors(): void {
+		const preservedActorIds: Array<string | undefined> = [
+			this.getActorIdByAlias("pathingActor"),
+			this.getActorIdByAlias("inputActor"),
+		];
+
+		for (const actor of this.actors) {
+			// might have already been triggered another containing actor (e.g. unit -> weapon)
+			if (!preservedActorIds.includes(actor.actorId) && !actor.destroyed) {
+				actor.destroy(); // should also unregister from this directory
+			}
+		}
+	}
 }
 
 export const ActorDirectoryAliases = [
@@ -103,6 +125,7 @@ export const ActorDirectoryAliases = [
 	"enemyActor",
 	"playerUnitActor",
 	"pathingActor",
+	"inputActor",
 ] as const;
 export type ActorDirectoryAlias = (typeof ActorDirectoryAliases)[number];
 

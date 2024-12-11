@@ -3,6 +3,7 @@ import type { ActorDirectory } from "../actors/actor-directory";
 import { UnitActor } from "../actors/unit-actor";
 import { ChangeUnitVelocityMessage } from "../messages/change-unit-velocity-message";
 import type { MessageBroker } from "../messages/message-broker";
+import { yeet } from "../utilities/utilities";
 import { Ability } from "./ability";
 import { UnitFlagCheck } from "./unit-flag-check";
 
@@ -31,10 +32,9 @@ export class StopMovingAbility extends Ability {
 	}
 
 	protected applyEffects(): void {
-		const unitActor = this._actorDirectory.getActor(
-			this.castingUnitActorId,
-			UnitActor,
-		);
+		const unitActor =
+			this._actorDirectory.getActor(this.castingUnitActorId, UnitActor) ??
+			yeet();
 
 		this._messageBroker.publishMessage(
 			new ChangeUnitVelocityMessage(

@@ -11,11 +11,19 @@ export abstract class Actor {
 		this._messages = [];
 		this.actorId = v4();
 		this.actorDirectory.registerActor(this);
-		this.destroyed = false;
+		this._destroyed = false;
 	}
 
 	readonly actorId: string;
-	protected destroyed: boolean;
+
+	private _destroyed: boolean;
+	get destroyed(): boolean {
+		return this._destroyed;
+	}
+	protected set destroyed(value: boolean) {
+		this._destroyed = value;
+	}
+
 	private readonly _messages: Message[];
 
 	destroy(): void {
