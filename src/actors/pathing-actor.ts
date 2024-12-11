@@ -205,7 +205,7 @@ export class PathingActor extends Actor {
 	}
 
 	generateTreesPlain(threshold: number): void {
-		this.clearTrees();
+		this.clearAllTrees();
 
 		const prng = alea(this._seed);
 
@@ -217,6 +217,8 @@ export class PathingActor extends Actor {
 				}
 			}
 		}
+
+		this.clearTreesInSpawningAreas();
 	}
 
 	generateTreesSimplex(
@@ -226,7 +228,7 @@ export class PathingActor extends Actor {
 		persistance: number, // 0 - 1
 		lacunarity: number, // > 1 (maybe 1-5)
 	): void {
-		this.clearTrees();
+		this.clearAllTrees();
 
 		if (scale <= 0) {
 			// biome-ignore lint: reasignment of param is safeguarding
@@ -271,12 +273,29 @@ export class PathingActor extends Actor {
 				}
 			}
 		}
+
+		this.clearTreesInSpawningAreas();
 	}
 
-	private clearTrees(): void {
+	private clearAllTrees(): void {
 		for (const eo of engineObjects) {
 			if (eo instanceof TreeEngineObject) {
 				eo.destroy();
+			}
+		}
+	}
+
+	private clearTreesInSpawningAreas(): void {
+		for (const eo of engineObjects) {
+			if (eo instanceof TreeEngineObject) {
+				if (
+					eo.pos.x < this.spawnAreaSize ||
+					eo.pos.x > this.worldSize.x - this.spawnAreaSize ||
+					eo.pos.y < this.spawnAreaSize ||
+					eo.pos.y > this.worldSize.y - this.spawnAreaSize
+				) {
+					eo.destroy();
+				}
 			}
 		}
 	}
