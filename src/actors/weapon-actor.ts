@@ -83,17 +83,17 @@ export class WeaponActor extends Actor {
 			debugLine(line.start, line.end, undefined, undefined, 0.1);
 		}
 
-		// damage
-		this.messageBroker.publishMessage(
-			new DamageUnitMessage(this._unitActorId, this.weaponType.damage),
-			routeRules,
-		);
-
-		// impact
+		// impact (before dmg so unit can become impacted before dying)
 		this.messageBroker.publishMessage(
 			new ImpactUnitMessage(
 				vec2().setAngle(unitActor.facingAngle, this.weaponType.force),
 			),
+			routeRules,
+		);
+
+		// damage
+		this.messageBroker.publishMessage(
+			new DamageUnitMessage(this._unitActorId, this.weaponType.damage),
 			routeRules,
 		);
 	}

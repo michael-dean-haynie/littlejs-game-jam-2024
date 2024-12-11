@@ -8,10 +8,10 @@ export class AttackOrder extends Order {
 	protected handleAbilityProgress(abilityStage: AbilityStage): void {
 		if (abilityStage === "check failed") {
 			if (this.ability.failedCheck instanceof UnitHasWeaponEquippedCheck) {
-				// do nothing?
+				this.stage = "complete"; // nothing happens
 			}
 			if (this.ability.failedCheck instanceof WeaponOffCooldownCheck) {
-				// do nothing? hint msg to user in UI?
+				this.stage = "complete"; // nothing happens
 			}
 		}
 		if (abilityStage === "complete") {

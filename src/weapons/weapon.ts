@@ -1,6 +1,11 @@
 import { PI } from "littlejsengine";
 
-export const WeaponTypeNames = ["fists", "pistol", "shotgun"] as const;
+export const WeaponTypeNames = [
+	"animalMele",
+	"bat",
+	"pistol",
+	"shotgun",
+] as const;
 export type WeaponTypeName = (typeof WeaponTypeNames)[number];
 
 export function IsWeaponTypeName(
@@ -23,25 +28,33 @@ export type WeaponTypeMap = {
 };
 
 export const WeaponTypes: WeaponTypeMap = {
-	fists: {
-		name: "fists",
+	animalMele: {
+		name: "animalMele",
 		cooldown: 1000,
 		damage: 1,
 		range: 1,
 		spread: PI / 2, // 90 degrees
 		force: 1,
 	},
+	bat: {
+		name: "bat",
+		cooldown: 0,
+		damage: 5,
+		range: 2,
+		spread: PI / 2, // 90 degrees
+		force: 0.5,
+	},
 	pistol: {
 		name: "pistol",
 		cooldown: 0,
-		damage: 1,
-		range: 1,
-		spread: 0,
+		damage: 5,
+		range: 5,
+		spread: PI / 20,
 		force: 1,
 	},
 	shotgun: {
 		name: "shotgun",
-		cooldown: 0,
+		cooldown: 1000,
 		damage: 10,
 		range: 2,
 		spread: PI / 2, // 90 degrees

@@ -1,5 +1,6 @@
 export const UnitFlagNames = [
 	"impacted", // current movement the result of some sort of attack colision, not self propelled
+	"dying", // has sustained fatal damage, (probably waiting to come off of "impacted" before being destroyed)
 ] as const;
 export type UnitFlagName = (typeof UnitFlagNames)[number];
 export type UnitFlagMap = { [key in UnitFlagName]: boolean };
@@ -21,5 +22,12 @@ export class UnitFlags implements UnitFlagMap {
 	}
 	set impacted(value: boolean) {
 		this._data.impacted = value;
+	}
+
+	get dying() {
+		return this._data.dying || false;
+	}
+	set dying(value: boolean) {
+		this._data.dying = value;
 	}
 }

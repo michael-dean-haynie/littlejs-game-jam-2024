@@ -28,8 +28,8 @@ export const UnitTypes: UnitTypeMap = {
 		size: 1,
 		mass: 10,
 		color: new Color().setHex("#FF5733"), // orange
-		defaultWeapons: [WeaponTypes.shotgun],
-		hitpoints: 100,
+		defaultWeapons: [WeaponTypes.pistol],
+		hitpoints: 25,
 	},
 	rabbit: {
 		name: "rabbit",
@@ -37,7 +37,7 @@ export const UnitTypes: UnitTypeMap = {
 		size: 1,
 		mass: 1,
 		color: rgb(1, 1, 1, 1), // white
-		defaultWeapons: [WeaponTypes.fists],
+		defaultWeapons: [WeaponTypes.animalMele],
 		hitpoints: 10,
 	},
 	pig: {
@@ -46,7 +46,7 @@ export const UnitTypes: UnitTypeMap = {
 		size: 1,
 		mass: 5,
 		color: rgb(255 / 255, 192 / 255, 203 / 255, 1), // pink?
-		defaultWeapons: [WeaponTypes.fists],
+		defaultWeapons: [WeaponTypes.animalMele],
 		hitpoints: 40,
 	},
 } as const;

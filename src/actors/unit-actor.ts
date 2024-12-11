@@ -34,6 +34,7 @@ export class UnitActor extends Actor {
 		this._equippedWeaponActorId = null;
 		this._hitpoints = this.unitType.hitpoints;
 		this._facingAngle = PI; // down
+		this._deathMessage = null;
 
 		// add default weapons (skip message broker for immediate init)
 		for (const weaponType of this.unitType.defaultWeapons) {
@@ -57,6 +58,8 @@ export class UnitActor extends Actor {
 
 	readonly unitType: UnitType;
 	readonly team: Team;
+
+	private _deathMessage: UnitHasDiedMessage | null;
 
 	private _facingAngle: number; // in radians
 	get facingAngle(): number {
@@ -116,6 +119,11 @@ export class UnitActor extends Actor {
 			this._flags.impacted = false;
 		}
 
+		// check if ready to die
+		if (this.flags.dying && !this.flags.impacted) {
+			this.die();
+		}
+
 		super.update(); // handles incomming messages
 
 		// process order queue
@@ -164,30 +172,21 @@ export class UnitActor extends Actor {
 	private handleDamageUnitMessage(message: DamageUnitMessage): void {
 		this._hitpoints -= message.damage;
 		if (this.hitpoints <= 0) {
+			this._flags.dying = true;
 			const killingUnitActor =
 				this.actorDirectory.getActor<UnitActor>(
 					message.damagingUnitActorId,
 					UnitActor,
 				) || yeet("UNEXPECTED_NULLISH_VALUE");
 
-			this.messageBroker.publishMessage(
-				new UnitHasDiedMessage(
-					this.actorId,
-					this.unitType,
-					this.team,
-					killingUnitActor.actorId,
-					killingUnitActor.unitType,
-					killingUnitActor.team,
-				),
-				{
-					actorIds: [
-						this.actorDirectory.getActorIdByAlias("playerActor") ?? yeet(),
-						this.actorDirectory.getActorIdByAlias("enemyActor") ?? yeet(),
-					],
-				},
+			this._deathMessage = new UnitHasDiedMessage(
+				this.actorId,
+				this.unitType,
+				this.team,
+				killingUnitActor.actorId,
+				killingUnitActor.unitType,
+				killingUnitActor.team,
 			);
-
-			this.destroy();
 		}
 	}
 
@@ -208,7 +207,6 @@ export class UnitActor extends Actor {
 
 	private handleIssueOrderMessage(message: IssueOrderMessage): void {
 		message.order.unitActorId = this.actorId;
-		// this._orderQueue.length = 0; // empty order queue
 
 		// replace conflicting orders
 		if (
@@ -228,6 +226,17 @@ export class UnitActor extends Actor {
 			order.resetProgress();
 		}
 		this._orderQueue.unshift(message.order);
+	}
+
+	private die() {
+		this.messageBroker.publishMessage(this._deathMessage ?? yeet(), {
+			actorIds: [
+				this.actorDirectory.getActorIdByAlias("playerActor") ?? yeet(),
+				this.actorDirectory.getActorIdByAlias("enemyActor") ?? yeet(),
+			],
+		});
+
+		this.destroy();
 	}
 
 	private addWeaponActor(weaponType: WeaponType): void {
