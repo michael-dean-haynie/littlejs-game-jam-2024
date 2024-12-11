@@ -2,6 +2,7 @@ import type { AbilityStage } from "../abilities/ability";
 import { MoveInDirectionAbility } from "../abilities/move-in-direction-ability";
 import { UnitFlagCheck } from "../abilities/unit-flag-check";
 import type { Direction } from "../actors/input-actor";
+import { FaceDirectionOrder } from "./face-direction-order";
 import { Order } from "./order";
 
 export class MoveInDirectionOrder extends Order {
@@ -15,7 +16,13 @@ export class MoveInDirectionOrder extends Order {
 	protected handleAbilityProgress(abilityStage: AbilityStage): void {
 		if (abilityStage === "check failed") {
 			if (this.ability.failedCheck instanceof UnitFlagCheck) {
-				this.ability.resetProgress(); // keep trying
+				this.childOrder = new FaceDirectionOrder(
+					this._direction,
+					this.actorDirectory,
+					this.messageBroker,
+				);
+				this.childOrder.unitActorId = this.unitActorId;
+				this.stage = "waiting for child";
 			}
 		}
 		if (abilityStage === "complete") {

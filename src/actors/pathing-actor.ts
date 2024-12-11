@@ -11,6 +11,7 @@ import {
 import { createNoise2D } from "simplex-noise";
 import { ObstacleEngineObject } from "../engine-objects/obstacle-engine-object";
 import { PlayerObstacleEngineObject } from "../engine-objects/player-obstacle-engine-object";
+import { TreeEngineObject } from "../engine-objects/tree-engine-object";
 import type { UnitEngineObject } from "../engine-objects/unit-engine-object";
 import type { Message } from "../messages/message";
 import { roundToNearest, yeet } from "../utilities/utilities";
@@ -196,16 +197,10 @@ export class PathingActor extends Actor {
 				// console.log(`(${x},${y}): ${noise2d(x, y)}`);
 				const value = noise2d(x, y);
 				if (value > 0.75) {
-					const obstacle = new ObstacleEngineObject(
-						true,
-						vec2(x, y),
-						vec2(1, 1),
-					);
+					const obstacle = new TreeEngineObject(true, vec2(x, y), vec2(1, 1));
 				}
 			}
 		}
-
-		// const test = new ObstacleEngineObject(true, vec2(25, 15), vec2(1, 1));
 	}
 
 	private definePathingGrid(): void {

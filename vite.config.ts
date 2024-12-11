@@ -4,6 +4,9 @@ import { defineConfig } from "vite";
 import checker from "vite-plugin-checker";
 
 export default defineConfig(({ mode }) => ({
+	server: {
+		port: 2024,
+	},
 	plugins: [
 		checker({ typescript: true }), // Enable TypeScript checking
 	],

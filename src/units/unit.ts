@@ -1,4 +1,4 @@
-import { type Color, rgb } from "littlejsengine";
+import { Color, rgb } from "littlejsengine";
 import { type WeaponType, WeaponTypes } from "../weapons/weapon";
 
 export const UnitTypeNames = ["prey", "rabbit", "pig"] as const;
@@ -27,7 +27,7 @@ export const UnitTypes: UnitTypeMap = {
 		moveSpeed: 0.1,
 		size: 1,
 		mass: 10,
-		color: rgb(0, 1, 0, 1), // green
+		color: new Color().setHex("#FF5733"), // orange
 		defaultWeapons: [WeaponTypes.shotgun],
 		hitpoints: 100,
 	},

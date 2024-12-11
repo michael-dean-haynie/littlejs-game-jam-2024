@@ -1,6 +1,7 @@
 import { PI, type Vector2, vec2 } from "littlejsengine";
 import { UnitEngineObject } from "../engine-objects/unit-engine-object";
 import { AddWeaponToUnitMessage } from "../messages/add-weapon-to-unit-message";
+import { ChangeUnitFacingAngleMessage } from "../messages/change-unit-facing-angle-message";
 import { ChangeUnitVelocityMessage } from "../messages/change-unit-velocity-message";
 import { ImpactUnitMessage } from "../messages/impact-unit-message";
 import { IssueOrderMessage } from "../messages/issue-order-message";
@@ -145,6 +146,9 @@ export class UnitActor extends Actor {
 		if (message instanceof ChangeUnitVelocityMessage) {
 			this.handleChangeUnitVelocityMessage(message);
 		}
+		if (message instanceof ChangeUnitFacingAngleMessage) {
+			this.handleChangeUnitFacingAngleMessage(message);
+		}
 		if (message instanceof IssueOrderMessage) {
 			this.handleIssueOrderMessage(message);
 		}
@@ -196,6 +200,12 @@ export class UnitActor extends Actor {
 		if (message.updateFacingAngle && message.velocity.length() > 0) {
 			this._facingAngle = message.velocity.angle();
 		}
+	}
+
+	private handleChangeUnitFacingAngleMessage(
+		message: ChangeUnitFacingAngleMessage,
+	): void {
+		this._facingAngle = message.angle;
 	}
 
 	private handleIssueOrderMessage(message: IssueOrderMessage): void {
