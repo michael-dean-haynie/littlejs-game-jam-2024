@@ -160,6 +160,11 @@ export class WeaponActor extends Actor {
 			new DamageUnitMessage(this._unitActorId, this.weaponType.damage),
 			routeRules,
 		);
+
+		// auto-start reload if clip is empty
+		if (this.flags.clipIsEmpty) {
+			this.handleReloadWeaponMessage(new ReloadWeaponMessage()); // message self
+		}
 	}
 
 	private handleReloadWeaponMessage(message: ReloadWeaponMessage): void {
