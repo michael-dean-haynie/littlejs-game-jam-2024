@@ -166,7 +166,11 @@ export class UnitActor extends Actor {
 
 	private handleImpactUnitMessage(message: ImpactUnitMessage): void {
 		this._flags.impacted = true;
-		this._engineObject.applyForce(message.force);
+		if (message.force > 0) {
+			this._engineObject.applyForce(
+				this.pos.subtract(message.originPoint).normalize(message.force),
+			);
+		}
 	}
 
 	private handleDamageUnitMessage(message: DamageUnitMessage): void {

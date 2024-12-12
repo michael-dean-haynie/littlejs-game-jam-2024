@@ -72,7 +72,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		damage: 10,
 		range: 2,
 		spread: PI / 2, // 90 degrees
-		force: 5,
+		force: 20,
 		sound: prepSound("/sounds/gun.mp3"),
 		soundVolume: 0.1,
 	},

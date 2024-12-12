@@ -31,7 +31,8 @@ export class UnitEngineObject extends EngineObject {
 			if (object.unitActor.flags.impacted) {
 				this._messageBroker.publishMessage(
 					new ImpactUnitMessage(
-						vec2().scale(0), // just need to flag as impacted
+						0, // just need to flag as impacted
+						this.pos,
 					),
 					{ actorIds: [this.unitActor.actorId] },
 				);

@@ -95,9 +95,7 @@ export class WeaponActor extends Actor {
 
 		// impact (before dmg so unit can become impacted before dying)
 		this.messageBroker.publishMessage(
-			new ImpactUnitMessage(
-				vec2().setAngle(unitActor.facingAngle, this.weaponType.force),
-			),
+			new ImpactUnitMessage(this.weaponType.force, unitActor.pos),
 			routeRules,
 		);
 
