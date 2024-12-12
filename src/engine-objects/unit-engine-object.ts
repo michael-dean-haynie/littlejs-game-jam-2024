@@ -24,7 +24,11 @@ export class UnitEngineObject extends EngineObject {
 	) {
 		super(...params);
 		this.setCollision(); // turn collision on
+		this._barHeight = 0.125;
 	}
+
+	/** the height of unit bars (in world units) */
+	private readonly _barHeight: number;
 
 	collideWithObject(object: EngineObject): boolean {
 		// make sure enemies impct eachother
@@ -55,18 +59,32 @@ export class UnitEngineObject extends EngineObject {
 		// unit type name
 		drawText(this.unitActor.unitType.name, this.pos, 0.3, rgb(0, 0, 0, 1));
 
+		// health bar
 		this.renderHealthBar();
 
+		// weapon bars
 		if (this.unitActor.unitType === UnitTypes.prey) {
-			this.renderAmmoBar();
+			if (this.unitActor.equippedWeaponActorId) {
+				const weaponActor = this._actorDirectory.getActor(
+					this.unitActor.equippedWeaponActorId,
+					WeaponActor,
+				);
+				if (weaponActor) {
+					if (weaponActor.flags.reloading) {
+						this.renderReloadingBar();
+					} else {
+						this.renderAmmoBar();
+					}
+				}
+			}
 		}
 	}
 
 	private renderHealthBar(): void {
 		this.renderContinuousUnitBar({
-			pos: this.pos.add(vec2(0, this.size.y / 2 + 0.125 + 0.125)),
+			pos: this.getBarPosition(0),
 			width: this.size.x,
-			height: 0.125,
+			height: this._barHeight,
 			segments: [
 				{
 					color: new Color().setHex("#cb4335"),
@@ -88,11 +106,9 @@ export class UnitEngineObject extends EngineObject {
 			);
 			if (weaponActor) {
 				this.renderDiscreteUnitBar({
-					pos: this.pos.add(
-						vec2(0, this.size.y / 2 + 0.125 + 0.125 + 0.125 + 0.125),
-					),
+					pos: this.getBarPosition(1),
 					width: this.size.x,
-					height: 0.125,
+					height: this._barHeight,
 					segments: [
 						{
 							color: new Color().setHex("#e5e7e9"),
@@ -106,6 +122,41 @@ export class UnitEngineObject extends EngineObject {
 				});
 			}
 		}
+	}
+
+	private renderReloadingBar(): void {
+		if (this.unitActor.equippedWeaponActorId) {
+			const weaponActor = this._actorDirectory.getActor(
+				this.unitActor.equippedWeaponActorId,
+				WeaponActor,
+			);
+			if (weaponActor) {
+				this.renderContinuousUnitBar({
+					pos: this.getBarPosition(1),
+					width: this.size.x,
+					height: this._barHeight,
+					segments: [
+						{
+							color: new Color().setHex("#e5e7e9"),
+							value: weaponActor.reloadProgress, // time passed
+						},
+						{
+							color: new Color().setHex("#424949"),
+							value: weaponActor.reloadRemaining, // time remaining
+						},
+					],
+				});
+			}
+		}
+	}
+
+	/** calculate the position of a bar based off the bar slot */
+	private getBarPosition(slot: number) {
+		const topOfUnitOffset = this.size.y / 2;
+		const slotOffset = this._barHeight * 1.5 * slot;
+		return vec2(this.unitActor.pos).add(
+			vec2(0, topOfUnitOffset + this._barHeight + slotOffset),
+		);
 	}
 
 	private renderContinuousUnitBar({

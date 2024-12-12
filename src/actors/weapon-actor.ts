@@ -42,6 +42,12 @@ export class WeaponActor extends Actor {
 
 	/** timestamp of last time this weapon started reloading */
 	private _lastReload: number;
+	get reloadProgress(): number {
+		return Date.now() - this._lastReload;
+	}
+	get reloadRemaining(): number {
+		return this.weaponType.reloadMs - this.reloadProgress;
+	}
 
 	/** number of rounds currently in the clip */
 	private _loadedRounds: number;
