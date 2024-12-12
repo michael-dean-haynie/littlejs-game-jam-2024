@@ -1,4 +1,11 @@
-import { type Vector2, clamp, debugLine, vec2 } from "littlejsengine";
+import {
+	SoundWave,
+	type Vector2,
+	clamp,
+	debugLine,
+	playAudioFile,
+	vec2,
+} from "littlejsengine";
 import { FireWeaponMessage } from "../messages/fire-weapon-message";
 import { ImpactUnitMessage } from "../messages/impact-unit-message";
 import type { Message } from "../messages/message";
@@ -82,6 +89,9 @@ export class WeaponActor extends Actor {
 		for (const line of intersectingRules) {
 			debugLine(line.start, line.end, undefined, undefined, 0.1);
 		}
+
+		// Sound Effect
+		this.weaponType.sound.play(undefined, this.weaponType.soundVolume);
 
 		// impact (before dmg so unit can become impacted before dying)
 		this.messageBroker.publishMessage(
