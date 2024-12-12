@@ -3,6 +3,7 @@ import { UnitEngineObject } from "../engine-objects/unit-engine-object";
 import { AddWeaponToUnitMessage } from "../messages/add-weapon-to-unit-message";
 import { ChangeUnitFacingAngleMessage } from "../messages/change-unit-facing-angle-message";
 import { ChangeUnitVelocityMessage } from "../messages/change-unit-velocity-message";
+import { CycleEquippedWeaponMessage } from "../messages/cycle-equipped-weapon-message";
 import { ImpactUnitMessage } from "../messages/impact-unit-message";
 import { IssueOrderMessage } from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
@@ -155,6 +156,9 @@ export class UnitActor extends Actor {
 		if (message instanceof ChangeUnitFacingAngleMessage) {
 			this.handleChangeUnitFacingAngleMessage(message);
 		}
+		if (message instanceof CycleEquippedWeaponMessage) {
+			this.handleCycleEquippedWeaponMessage(message);
+		}
 		if (message instanceof IssueOrderMessage) {
 			this.handleIssueOrderMessage(message);
 		}
@@ -211,6 +215,16 @@ export class UnitActor extends Actor {
 		message: ChangeUnitFacingAngleMessage,
 	): void {
 		this._facingAngle = message.angle;
+	}
+
+	private handleCycleEquippedWeaponMessage(
+		message: CycleEquippedWeaponMessage,
+	): void {
+		const current = this._weaponActorIds.shift();
+		if (current) {
+			this._weaponActorIds.push(current);
+			this.equipWeaponActor(this.weaponActorIds[0]);
+		}
 	}
 
 	private handleIssueOrderMessage(message: IssueOrderMessage): void {

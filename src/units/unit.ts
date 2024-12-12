@@ -28,7 +28,7 @@ export const UnitTypes: UnitTypeMap = {
 		size: 1,
 		mass: 10,
 		color: new Color().setHex("#FF5733"), // orange
-		defaultWeapons: [WeaponTypes.pistol],
+		defaultWeapons: [WeaponTypes.pistol, WeaponTypes.shotgun],
 		hitpoints: 25,
 	},
 	rabbit: {

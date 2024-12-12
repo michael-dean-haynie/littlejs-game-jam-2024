@@ -70,8 +70,8 @@ export const WeaponTypes: WeaponTypeMap = {
 		name: "shotgun",
 		cooldown: 1000,
 		damage: 10,
-		range: 2,
-		spread: PI / 2, // 90 degrees
+		range: 3,
+		spread: PI / 4,
 		force: 20,
 		sound: prepSound("/sounds/gun.mp3"),
 		soundVolume: 0.1,

@@ -4,6 +4,7 @@ import {
 	keyWasReleased,
 	mouseWasPressed,
 } from "littlejsengine";
+import { CycleEquippedWeaponMessage } from "../messages/cycle-equipped-weapon-message";
 import { IssueOrderMessage } from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
 import { AttackOrder } from "../orders/attack-order";
@@ -71,6 +72,16 @@ export class InputActor extends Actor {
 
 		if (keyWasPressed("KeyZ")) {
 			this._ui.toggleUI();
+		}
+
+		if (keyWasPressed("ShiftLeft")) {
+			const playerUnitActorId =
+				this.actorDirectory.getActorIdByAlias("playerUnitActor");
+			if (playerUnitActorId) {
+				this.messageBroker.publishMessage(new CycleEquippedWeaponMessage(), {
+					actorIds: [playerUnitActorId],
+				});
+			}
 		}
 	}
 
