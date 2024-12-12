@@ -3,13 +3,16 @@ import { UnitActor } from "../actors/unit-actor";
 import { WeaponActor } from "../actors/weapon-actor";
 import { FireWeaponMessage } from "../messages/fire-weapon-message";
 import type { MessageBroker } from "../messages/message-broker";
+import { ReloadWeaponMessage } from "../messages/reload-weapon-message";
 import { yeet } from "../utilities/utilities";
 import { Ability } from "./ability";
 import { UnitHasWeaponEquippedCheck } from "./unit-has-weapon-equipped-check";
 import { WeaponClipNotEmptyCheck } from "./weapon-clip-not-empty-check";
+import { WeaponClipNotFullCheck } from "./weapon-clip-not-full-check";
+import { WeaponNotReloadingCheck } from "./weapon-not-reloading-check";
 import { WeaponOffCooldownCheck } from "./weapon-off-cooldown-check";
 
-export class AttackAbility extends Ability {
+export class ReloadAbility extends Ability {
 	constructor(
 		private readonly _actorDirectory: ActorDirectory,
 		private readonly _messageBroker: MessageBroker,
@@ -41,7 +44,11 @@ export class AttackAbility extends Ability {
 		);
 
 		this._checks.push(
-			new WeaponClipNotEmptyCheck(this._actorDirectory, weaponActor.actorId),
+			new WeaponClipNotFullCheck(this._actorDirectory, weaponActor.actorId),
+		);
+
+		this._checks.push(
+			new WeaponNotReloadingCheck(this._actorDirectory, weaponActor.actorId),
 		);
 	}
 
@@ -53,7 +60,7 @@ export class AttackAbility extends Ability {
 		const castingUnitActor =
 			this._actorDirectory.getActor(this.castingUnitActorId, UnitActor) ??
 			yeet();
-		this._messageBroker.publishMessage(new FireWeaponMessage(), {
+		this._messageBroker.publishMessage(new ReloadWeaponMessage(), {
 			actorIds: [castingUnitActor.equippedWeaponActorId ?? yeet()],
 		});
 	}

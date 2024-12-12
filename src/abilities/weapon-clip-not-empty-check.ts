@@ -3,7 +3,7 @@ import { WeaponActor } from "../actors/weapon-actor";
 import { yeet } from "../utilities/utilities";
 import { AbilityCheck } from "./ability-check";
 
-export class WeaponOffCooldownCheck extends AbilityCheck {
+export class WeaponClipNotEmptyCheck extends AbilityCheck {
 	constructor(
 		private readonly _actorDirectory: ActorDirectory,
 		private readonly _weaponActorId: string,
@@ -14,6 +14,6 @@ export class WeaponOffCooldownCheck extends AbilityCheck {
 	check(): boolean {
 		const weaponActor =
 			this._actorDirectory.getActor(this._weaponActorId, WeaponActor) ?? yeet();
-		return !weaponActor.flags.onCooldown;
+		return !weaponActor.flags.clipIsEmpty;
 	}
 }

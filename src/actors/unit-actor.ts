@@ -44,6 +44,7 @@ export class UnitActor extends Actor {
 
 		// create engine object
 		this._engineObject = new UnitEngineObject(
+			this.actorDirectory,
 			this.messageBroker,
 			this,
 			position,

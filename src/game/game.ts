@@ -127,6 +127,8 @@ export class Game {
 		}
 	}
 
+	render(): void {}
+
 	startRound(treeNoiseParams: TreeNoiseParams) {
 		// destroy actors
 		this._actorDirectory.resetActors();

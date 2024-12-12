@@ -1,12 +1,14 @@
 export const UnitFlagNames = [
-	"impacted", // current movement the result of some sort of attack colision, not self propelled
-	"dying", // has sustained fatal damage, (probably waiting to come off of "impacted" before being destroyed)
+	/** current movement the result of some sort of attack colision, not self propelled */
+	"impacted",
+	/** has sustained fatal damage, (probably waiting to come off of "impacted" before being destroyed) */
+	"dying",
 ] as const;
 export type UnitFlagName = (typeof UnitFlagNames)[number];
 export type UnitFlagMap = { [key in UnitFlagName]: boolean };
 export type UnitFlagMapOptional = { [key in UnitFlagName]?: boolean };
 
-export function IsAbilityStage(value: string | null): value is UnitFlagName {
+export function IsUnitFlagName(value: string | null): value is UnitFlagName {
 	return UnitFlagNames.includes(value as UnitFlagName);
 }
 

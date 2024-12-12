@@ -1,11 +1,4 @@
-import {
-	SoundWave,
-	type Vector2,
-	clamp,
-	debugLine,
-	playAudioFile,
-	vec2,
-} from "littlejsengine";
+import { clamp, debugLine, vec2 } from "littlejsengine";
 import { FireWeaponMessage } from "../messages/fire-weapon-message";
 import { ImpactUnitMessage } from "../messages/impact-unit-message";
 import type { Message } from "../messages/message";
@@ -13,9 +6,11 @@ import type {
 	IntersectingRayRoutingRule,
 	MessageRoutingRules,
 } from "../messages/message-routing-rules";
+import { ReloadWeaponMessage } from "../messages/reload-weapon-message";
 import { DamageUnitMessage } from "../messages/take-damage-message";
 import { yeet } from "../utilities/utilities";
 import type { WeaponType } from "../weapons/weapon";
+import { WeaponFlags } from "../weapons/weapon-flags";
 import { Actor } from "./actor";
 import { UnitActor } from "./unit-actor";
 
@@ -28,39 +23,86 @@ export class WeaponActor extends Actor {
 		super(...params);
 		this.weaponType = weaponType;
 		this._unitActorId = unitActorId;
-		this._weaponCooldownStart = null;
+		this._flags = new WeaponFlags();
+		this._lastFire = 0;
+		this._lastReload = 0;
+		this._loadedRounds = weaponType.clipSize; // start with full clip
 	}
 
 	readonly weaponType: WeaponType;
-
 	private readonly _unitActorId: string;
 
-	private _weaponCooldownStart: number | null;
-	get cooldownRemaining(): number {
-		if (this._weaponCooldownStart === null) {
-			return 0;
-		}
-
-		const msSinceLastFire = Date.now() - this._weaponCooldownStart;
-		if (msSinceLastFire > this.weaponType.cooldown) {
-			return 0;
-		}
-
-		return this.weaponType.cooldown - msSinceLastFire;
+	private _flags: WeaponFlags;
+	get flags(): Readonly<WeaponFlags> {
+		return this._flags;
 	}
-	get offCooldown(): boolean {
-		return this.cooldownRemaining <= 0;
+
+	/** timestamp of last time this weapon fired */
+	private _lastFire: number;
+
+	/** timestamp of last time this weapon started reloading */
+	private _lastReload: number;
+
+	/** number of rounds currently in the clip */
+	private _loadedRounds: number;
+	get loadedRounds(): number {
+		return this._loadedRounds;
+	}
+
+	update(): void {
+		// check if reload cycle is finished
+		if (this.flags.reloading) {
+			const msSinceLastReload = Date.now() - this._lastReload;
+			if (msSinceLastReload >= this.weaponType.reloadMs) {
+				// add rounds to the clip
+				this._loadedRounds = clamp(
+					this._loadedRounds + this.weaponType.reloadRounds,
+					0,
+					this.weaponType.clipSize,
+				);
+			}
+		}
+
+		this.updateFlags();
+		super.update();
 	}
 
 	protected handleMessage<T extends Message>(message: T): void {
 		if (message instanceof FireWeaponMessage) {
 			this.handleFireWeaponMessage(message);
 		}
+		if (message instanceof ReloadWeaponMessage) {
+			this.handleReloadWeaponMessage(message);
+		}
 	}
 
 	private handleFireWeaponMessage(message: FireWeaponMessage): void {
-		// update cooldown
-		this._weaponCooldownStart = Date.now();
+		if (this.flags.clipIsEmpty) {
+			throw new Error("clip was empty, check should have failed before now");
+		}
+
+		if (this.flags.onCooldown) {
+			throw new Error(
+				"weapon was on cooldown, check should have failed before now",
+			);
+		}
+
+		// cancel reloading (if currently reloading)
+		if (this.flags.reloading) {
+			this._lastReload = 0;
+		}
+
+		// update the last fire timestamp
+		this._lastFire = Date.now();
+
+		// remove a round from the clip
+		this._loadedRounds = clamp(
+			this._loadedRounds - 1,
+			0,
+			this.weaponType.clipSize,
+		);
+
+		this.updateFlags();
 
 		const unitActor =
 			this.actorDirectory.getActor(this._unitActorId, UnitActor) ||
@@ -104,6 +146,23 @@ export class WeaponActor extends Actor {
 			new DamageUnitMessage(this._unitActorId, this.weaponType.damage),
 			routeRules,
 		);
+	}
+
+	private handleReloadWeaponMessage(message: ReloadWeaponMessage): void {
+		this._lastReload = Date.now();
+		this.updateFlags();
+	}
+
+	private updateFlags(): void {
+		const msSinceLastFire = Date.now() - this._lastFire;
+		this._flags.onCooldown = msSinceLastFire <= this.weaponType.cooldownMs;
+
+		const msSinceLastReload = Date.now() - this._lastReload;
+		this._flags.reloading = msSinceLastReload <= this.weaponType.reloadMs;
+
+		this._flags.clipIsEmpty = this._loadedRounds <= 0;
+
+		this._flags.clipIsFull = this._loadedRounds >= this.weaponType.clipSize;
 	}
 
 	private calculateRayCount(wt: WeaponType): number {

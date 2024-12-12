@@ -16,11 +16,21 @@ export function IsWeaponTypeName(
 
 export interface WeaponType {
 	name: WeaponTypeName;
-	cooldown: number; // ms
+	/** minimum time that must pass after firing a round before another fire or reload */
+	cooldownMs: number; // ms
+	/** number of rounds before a reload is required */
+	clipSize: number;
+	/** how long a single reload cycle takes */
+	reloadMs: number;
+	/** number of rounds a single reload cycle adds */
+	reloadRounds: number;
+	/** damage inflicted to any hit targets */
 	damage: number;
+	/** effective range */
 	range: number;
 	/** angle in radians (3.14 = 180 deg) */
 	spread: number;
+	/** impace force to apply to hit targets */
 	force: number;
 	sound: SoundWave;
 	soundVolume: number;
@@ -38,7 +48,10 @@ export function prepSound(file: string, volume = 1) {
 export const WeaponTypes: WeaponTypeMap = {
 	animalMele: {
 		name: "animalMele",
-		cooldown: 1000,
+		cooldownMs: 1000,
+		clipSize: Number.POSITIVE_INFINITY,
+		reloadMs: 0,
+		reloadRounds: 0,
 		damage: 1,
 		range: 1,
 		spread: PI / 2, // 90 degrees
@@ -48,7 +61,10 @@ export const WeaponTypes: WeaponTypeMap = {
 	},
 	bat: {
 		name: "bat",
-		cooldown: 0,
+		cooldownMs: 0,
+		clipSize: Number.POSITIVE_INFINITY,
+		reloadMs: 0,
+		reloadRounds: 0,
 		damage: 5,
 		range: 2,
 		spread: PI / 2, // 90 degrees
@@ -58,7 +74,10 @@ export const WeaponTypes: WeaponTypeMap = {
 	},
 	pistol: {
 		name: "pistol",
-		cooldown: 0,
+		cooldownMs: 0,
+		clipSize: 10,
+		reloadMs: 2000,
+		reloadRounds: Number.POSITIVE_INFINITY,
 		damage: 5,
 		range: 5,
 		spread: PI / 20,
@@ -68,7 +87,10 @@ export const WeaponTypes: WeaponTypeMap = {
 	},
 	shotgun: {
 		name: "shotgun",
-		cooldown: 1000,
+		cooldownMs: 1000,
+		clipSize: 2,
+		reloadMs: 1000,
+		reloadRounds: 1,
 		damage: 10,
 		range: 3,
 		spread: PI / 4,

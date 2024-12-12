@@ -9,6 +9,7 @@ import { IssueOrderMessage } from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
 import { AttackOrder } from "../orders/attack-order";
 import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
+import { ReloadOrder } from "../orders/reload-order";
 import { StopMovingOrder } from "../orders/stop-moving-order";
 import type { UI } from "../ui/ui";
 import { yeet } from "../utilities/utilities";
@@ -56,6 +57,7 @@ export class InputActor extends Actor {
 	// overwrite super, not extend since this input actor should only publish messages, not receive
 	update(): void {
 		this.handleMovementInput();
+
 		// attack
 		if (mouseWasPressed(0)) {
 			const playerUnitActorId =
@@ -70,7 +72,21 @@ export class InputActor extends Actor {
 			}
 		}
 
-		if (keyWasPressed("KeyZ")) {
+		// reload
+		if (keyWasPressed("KeyR")) {
+			const playerUnitActorId =
+				this.actorDirectory.getActorIdByAlias("playerUnitActor");
+			if (playerUnitActorId) {
+				this.messageBroker.publishMessage(
+					new IssueOrderMessage(
+						new ReloadOrder(this.actorDirectory, this.messageBroker),
+					),
+					{ actorIds: [playerUnitActorId] },
+				);
+			}
+		}
+
+		if (keyWasPressed("Backquote")) {
 			this._ui.toggleUI();
 		}
 
