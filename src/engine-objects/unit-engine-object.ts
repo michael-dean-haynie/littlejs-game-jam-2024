@@ -150,7 +150,7 @@ export class UnitEngineObject extends EngineObject {
 		}
 	}
 
-	/** calculate the position of a bar based off the bar slot */
+	/** calculate the position of a bar based on the bar slot */
 	private getBarPosition(slot: number) {
 		const topOfUnitOffset = this.size.y / 2;
 		const slotOffset = this._barHeight * 1.5 * slot;
