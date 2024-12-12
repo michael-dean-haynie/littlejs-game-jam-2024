@@ -1,4 +1,4 @@
-import { PI, type Vector2, vec2 } from "littlejsengine";
+import { PI, type Vector2, clamp, vec2 } from "littlejsengine";
 import { UnitEngineObject } from "../engine-objects/unit-engine-object";
 import { AddWeaponToUnitMessage } from "../messages/add-weapon-to-unit-message";
 import { ChangeUnitFacingAngleMessage } from "../messages/change-unit-facing-angle-message";
@@ -170,7 +170,11 @@ export class UnitActor extends Actor {
 	}
 
 	private handleDamageUnitMessage(message: DamageUnitMessage): void {
-		this._hitpoints -= message.damage;
+		this._hitpoints = clamp(
+			this._hitpoints - message.damage,
+			0,
+			this.unitType.hitpoints,
+		);
 		if (this.hitpoints <= 0) {
 			this._flags.dying = true;
 			const killingUnitActor =
