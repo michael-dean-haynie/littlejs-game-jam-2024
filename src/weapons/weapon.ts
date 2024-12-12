@@ -87,7 +87,7 @@ export const WeaponTypes: WeaponTypeMap = {
 	},
 	shotgun: {
 		name: "shotgun",
-		cooldownMs: 1000,
+		cooldownMs: 0,
 		clipSize: 2,
 		reloadMs: 2000,
 		reloadRounds: Number.POSITIVE_INFINITY,
