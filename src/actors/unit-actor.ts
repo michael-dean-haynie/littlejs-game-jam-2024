@@ -9,6 +9,8 @@ import { IssueOrderMessage } from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
 import { DamageUnitMessage } from "../messages/take-damage-message";
 import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
+import { WeaponEquippedMessage } from "../messages/weapon-equipped-message";
+import { WeaponUnequippedMessage } from "../messages/weapon-unequipped-message";
 import { MoveInDirectionOrder } from "../orders/move-in-direction-order";
 import type { Order } from "../orders/order";
 import { StopMovingOrder } from "../orders/stop-moving-order";
@@ -221,9 +223,10 @@ export class UnitActor extends Actor {
 	private handleCycleEquippedWeaponMessage(
 		message: CycleEquippedWeaponMessage,
 	): void {
-		const current = this._weaponActorIds.shift();
-		if (current) {
-			this._weaponActorIds.push(current);
+		if (this._weaponActorIds.length > 1) {
+			const prev = this._weaponActorIds.shift() ?? yeet();
+			this._weaponActorIds.push(prev);
+			this.unequipWeaponActor(prev);
 			this.equipWeaponActor(this.weaponActorIds[0]);
 		}
 	}
@@ -279,5 +282,21 @@ export class UnitActor extends Actor {
 
 	private equipWeaponActor(weaponActorId: string): void {
 		this._equippedWeaponActorId = weaponActorId;
+
+		// send message weapon
+		this.messageBroker.publishMessage(new WeaponEquippedMessage(), {
+			actorIds: [weaponActorId],
+		});
+	}
+
+	private unequipWeaponActor(weaponActorId: string): void {
+		if (this.equippedWeaponActorId === weaponActorId) {
+			this._equippedWeaponActorId = null;
+		}
+
+		// send message weapon
+		this.messageBroker.publishMessage(new WeaponUnequippedMessage(), {
+			actorIds: [weaponActorId],
+		});
 	}
 }

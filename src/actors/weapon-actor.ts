@@ -8,6 +8,8 @@ import type {
 } from "../messages/message-routing-rules";
 import { ReloadWeaponMessage } from "../messages/reload-weapon-message";
 import { DamageUnitMessage } from "../messages/take-damage-message";
+import { WeaponEquippedMessage } from "../messages/weapon-equipped-message";
+import { WeaponUnequippedMessage } from "../messages/weapon-unequipped-message";
 import { yeet } from "../utilities/utilities";
 import type { WeaponType } from "../weapons/weapon";
 import { WeaponFlags } from "../weapons/weapon-flags";
@@ -79,6 +81,12 @@ export class WeaponActor extends Actor {
 		}
 		if (message instanceof ReloadWeaponMessage) {
 			this.handleReloadWeaponMessage(message);
+		}
+		if (message instanceof WeaponEquippedMessage) {
+			this.handleWeaponEquippedMessage(message);
+		}
+		if (message instanceof WeaponUnequippedMessage) {
+			this.handleWeaponUnequippedMessage(message);
 		}
 	}
 
@@ -159,6 +167,20 @@ export class WeaponActor extends Actor {
 		this.updateFlags();
 	}
 
+	private handleWeaponEquippedMessage(message: WeaponEquippedMessage): void {
+		if (this.flags.clipIsEmpty) {
+			this.handleReloadWeaponMessage(new ReloadWeaponMessage()); // message self?
+		}
+	}
+
+	private handleWeaponUnequippedMessage(
+		message: WeaponUnequippedMessage,
+	): void {
+		if (this.flags.reloading) {
+			this.stopReloading();
+		}
+	}
+
 	private updateFlags(): void {
 		const msSinceLastFire = Date.now() - this._lastFire;
 		this._flags.onCooldown = msSinceLastFire <= this.weaponType.cooldownMs;
@@ -169,6 +191,11 @@ export class WeaponActor extends Actor {
 		this._flags.clipIsEmpty = this._loadedRounds <= 0;
 
 		this._flags.clipIsFull = this._loadedRounds >= this.weaponType.clipSize;
+	}
+
+	private stopReloading(): void {
+		this._lastReload = 0;
+		this.updateFlags();
 	}
 
 	private calculateRayCount(wt: WeaponType): number {
