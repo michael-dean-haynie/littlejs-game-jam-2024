@@ -8,7 +8,9 @@
 
 <body>
     <script src="src/index.ts" type="module"></script>
-    <div id="ui-container" class="hidden">
+
+    <!-- UI CONTAINER -->
+    <div id="uiContainer" class="hidden">
         <button id="seed" type="button">Generate New Seed</button>
         <button id="playTestNoise" type="button">Play Test</button>
         <button id="stopPlayTestNoise" type="button">Stop Play Test</button>
@@ -49,6 +51,17 @@
                 <input type="range" id="lacunarity" name="lacunarity" min="1" max="5" step=".01" />
                 <label for="lacunarity">Lacunarity (1 - 5)</label>
             </div>
+        </div>
+    </div>
+
+    <!-- OVERLAY CONTAINER -->
+    <div id="overlayContainer">
+        <!-- SCORE OVERLAY -->
+        <div id="scoreOverlay">
+            <div>
+                <span>SCORE:</span>
+                <!-- &nbsp; -->
+                <span id="score">1000</span>
         </div>
     </div>
 </body>

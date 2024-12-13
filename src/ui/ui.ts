@@ -51,7 +51,7 @@ export class UI {
 	private _stopPlayTestNoiseButton: HTMLElement;
 
 	toggleUI() {
-		const uiDiv = document.getElementById("ui-container") ?? yeet();
+		const uiDiv = document.getElementById("uiContainer") ?? yeet();
 
 		uiDiv.classList.toggle("hidden");
 	}

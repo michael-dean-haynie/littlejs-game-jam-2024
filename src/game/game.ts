@@ -1,14 +1,10 @@
 import {
-	EngineObject,
 	type Vector2,
-	cameraPos,
-	cameraScale,
-	engineObjects,
 	engineObjectsDestroy,
 	setCameraPos,
-	setCameraScale,
 	setCanvasFixedSize,
 	setObjectDefaultDamping,
+	setShowWatermark,
 	vec2,
 } from "littlejsengine";
 import { ActorDirectory } from "../actors/actor-directory";
@@ -20,12 +16,14 @@ import { UnitActor } from "../actors/unit-actor";
 import { WeaponActor } from "../actors/weapon-actor";
 import { type TreeNoiseParams, WorldActor } from "../actors/world-actor";
 import { MessageBroker } from "../messages/message-broker";
+import { ScoreOverlay } from "../ui/score-overlay";
 import { UI } from "../ui/ui";
 import { yeet } from "../utilities/utilities";
-import type { Score } from "./score";
+import { Score } from "./score";
 
 export class Game {
 	constructor() {
+		/** hardcoded to match css rule 'aspect-ratio' on #overlayContainer */
 		this._canvasSize = vec2(1280, 720); // use a 720p fixed size canvas
 		this._astarNodeSize = 1;
 
@@ -34,6 +32,8 @@ export class Game {
 		setObjectDefaultDamping(0.9);
 		// setObjectDefaultFriction(0);
 		// setObjectDefaultElasticity(1);
+		// setCameraScale(7);
+		setShowWatermark(false);
 
 		this._actorDirectory = new ActorDirectory();
 		this._messageBroker = new MessageBroker(this._actorDirectory);
@@ -54,12 +54,12 @@ export class Game {
 			this._messageBroker,
 		);
 		this._scores = [];
+		this._scoreOverlay = new ScoreOverlay(this._scores);
 
 		this._playerActor = null;
 		this._enemyActor = null;
 
 		this._worldActor.generateTrees();
-		// setCameraScale(7);
 	}
 
 	/** buffer size of html <canvas> */
@@ -70,7 +70,9 @@ export class Game {
 	private readonly _actorDirectory: ActorDirectory;
 	private readonly _messageBroker: MessageBroker;
 	private readonly _ui: UI;
+	private readonly _scoreOverlay: ScoreOverlay;
 	private readonly _inputActor: InputActor;
+	/** score data from each completed round */
 	private readonly _scores: Score[];
 
 	private readonly _worldActor: WorldActor;
@@ -95,6 +97,7 @@ export class Game {
 
 	update(): void {
 		this._inputActor.update(); // has special update() impl
+		this._scoreOverlay.update();
 
 		this._worldActor.update();
 		// update player/enemy
@@ -134,8 +137,10 @@ export class Game {
 		this._worldActor.generateTrees();
 
 		// re-create player/enemy actors
+		this._scores.push(new Score());
 		this._playerActor = new PlayerActor(
 			this,
+			this._scores.at(-1) ?? yeet(),
 			this._actorDirectory,
 			this._messageBroker,
 		);
@@ -146,11 +151,6 @@ export class Game {
 	}
 
 	endRound(): void {
-		// save score
-		if (this._playerActor) {
-			this._scores.push(this._playerActor.score);
-		}
-
 		// destroy actors
 		this._actorDirectory.resetActors();
 		this._playerActor = null;

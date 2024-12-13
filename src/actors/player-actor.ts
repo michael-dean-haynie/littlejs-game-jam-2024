@@ -1,6 +1,6 @@
 import { vec2 } from "littlejsengine";
 import type { Game } from "../game/game";
-import { Score } from "../game/score";
+import type { Score } from "../game/score";
 import type { Message } from "../messages/message";
 import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
 import { UnitTypes } from "../units/unit";
@@ -12,6 +12,8 @@ import { UnitActor } from "./unit-actor";
 export class PlayerActor extends Actor {
 	constructor(
 		private readonly _game: Game,
+		/** the score for the single round that this player obj exists */
+		public readonly score: Score,
 		...params: ConstructorParameters<typeof Actor>
 	) {
 		super(...params);
@@ -29,12 +31,7 @@ export class PlayerActor extends Actor {
 			"playerUnitActor",
 			unitActor.actorId,
 		);
-
-		this.score = new Score();
 	}
-
-	/** the score for the single round that this player obj exists */
-	readonly score: Score;
 
 	protected handleMessage<T extends Message>(message: T): void {
 		if (message instanceof UnitHasDiedMessage) {
