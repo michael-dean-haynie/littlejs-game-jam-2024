@@ -1,6 +1,12 @@
 import {
 	type Vector2,
+	cameraPos,
+	cameraScale,
+	drawLine,
+	drawRect,
 	engineObjectsDestroy,
+	getCameraSize,
+	rgb,
 	setCameraPos,
 	setCameraScale,
 	setCanvasFixedSize,
@@ -127,6 +133,53 @@ export class Game {
 
 	render(): void {}
 
+	renderPost(): void {
+		// draw border (origin in top right)
+		const thick = 4;
+		const width = getCameraSize().x * cameraScale - thick / 2;
+		const height = getCameraSize().y * cameraScale - thick / 2;
+
+		// top
+		drawLine(
+			vec2(0, 0),
+			vec2(width, 0),
+			thick,
+			rgb(1, 1, 1, 1),
+			undefined,
+			true,
+		);
+
+		// left
+		drawLine(
+			vec2(0, 0),
+			vec2(0, height),
+			thick,
+			rgb(1, 1, 1, 1),
+			undefined,
+			true,
+		);
+
+		// bottom
+		drawLine(
+			vec2(0, height),
+			vec2(width, height),
+			thick,
+			rgb(1, 1, 1, 1),
+			undefined,
+			true,
+		);
+
+		// bottom
+		drawLine(
+			vec2(width, 0),
+			vec2(width, height),
+			thick,
+			rgb(1, 1, 1, 1),
+			undefined,
+			true,
+		);
+	}
+
 	startRound() {
 		// destroy actors
 		this._actorDirectory.resetActors();
@@ -163,4 +216,12 @@ export class Game {
 		// destroy any remaining engine objects
 		engineObjectsDestroy();
 	}
+}
+function rbg(
+	arg0: number,
+	arg1: number,
+	arg2: number,
+	arg3: number,
+): number | undefined {
+	throw new Error("Function not implemented.");
 }
