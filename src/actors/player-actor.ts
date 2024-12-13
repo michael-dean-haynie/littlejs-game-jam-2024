@@ -1,4 +1,6 @@
 import { vec2 } from "littlejsengine";
+import type { Game } from "../game/game";
+import { Score } from "../game/score";
 import type { Message } from "../messages/message";
 import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
 import { UnitTypes } from "../units/unit";
@@ -8,7 +10,10 @@ import { PathingActor } from "./pathing-actor";
 import { UnitActor } from "./unit-actor";
 
 export class PlayerActor extends Actor {
-	constructor(...params: ConstructorParameters<typeof Actor>) {
+	constructor(
+		private readonly _game: Game,
+		...params: ConstructorParameters<typeof Actor>
+	) {
 		super(...params);
 		this.actorDirectory.registerActorAlias("playerActor", this.actorId);
 
@@ -24,7 +29,12 @@ export class PlayerActor extends Actor {
 			"playerUnitActor",
 			unitActor.actorId,
 		);
+
+		this.score = new Score();
 	}
+
+	/** the score for the single round that this player obj exists */
+	readonly score: Score;
 
 	protected handleMessage<T extends Message>(message: T): void {
 		if (message instanceof UnitHasDiedMessage) {
@@ -34,10 +44,10 @@ export class PlayerActor extends Actor {
 
 	private handleUnitHasDiedMessage(message: UnitHasDiedMessage): void {
 		if (message.deadUnitTeam === "player") {
-			// lose the round?
+			this._game.endRound();
 		}
 		if (message.deadUnitTeam === "enemy") {
-			// increase the player points?
+			this.score.kills[message.deadUnitType.name] += 1;
 		}
 	}
 }

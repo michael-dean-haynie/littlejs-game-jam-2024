@@ -8,6 +8,12 @@ export abstract class Ability {
 		this._failedCheck = null;
 		this._channelStart = null;
 		this._castingUnitActorId = null; // should be injected by order after construction
+		this._destroyed = false;
+	}
+
+	private _destroyed;
+	public get destroyed() {
+		return this._destroyed;
 	}
 
 	protected _checks: AbilityCheck[];
@@ -34,7 +40,17 @@ export abstract class Ability {
 	private _channelStart: number | null;
 	protected abstract get channelDuration(): number;
 
+	destroy(): void {
+		this._stage = "complete";
+		this._destroyed = true;
+	}
+
 	tryToProgress(): AbilityStage {
+		if (this.destroyed) {
+			this._stage = "complete";
+			return this.stage;
+		}
+
 		// init
 		if (this.stage === "init") {
 			this._stage = "check";
@@ -43,6 +59,10 @@ export abstract class Ability {
 		// check
 		if (this.stage === "check") {
 			for (const check of this._checks) {
+				if (this.destroyed) {
+					this._stage = "complete";
+					break;
+				}
 				if (!check.check()) {
 					this._failedCheck = check;
 					this._stage = "check failed";

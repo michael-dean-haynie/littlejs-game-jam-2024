@@ -14,12 +14,17 @@ export class UnitInRangeCheck extends AbilityCheck {
 	}
 
 	check(): boolean {
-		const castingUnitActor =
-			this._actorDirectory.getActor(this._castingUnitActorId, UnitActor) ??
-			yeet();
-		const targetUnitActor =
-			this._actorDirectory.getActor(this._targetUnitActorId, UnitActor) ??
-			yeet();
+		const castingUnitActor = this._actorDirectory.getActor(
+			this._castingUnitActorId,
+			UnitActor,
+		);
+		const targetUnitActor = this._actorDirectory.getActor(
+			this._targetUnitActorId,
+			UnitActor,
+		);
+		if (!castingUnitActor || !targetUnitActor) {
+			return false;
+		}
 		return (
 			castingUnitActor.pos.distance(targetUnitActor.pos) -
 				targetUnitActor.size.x / 2 <=

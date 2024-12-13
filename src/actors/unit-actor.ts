@@ -114,10 +114,19 @@ export class UnitActor extends Actor {
 		// destroy engine object
 		this._engineObject.destroy();
 
+		// destroy orders (recursing through child orders and abilities)
+		for (const order of this._orderQueue) {
+			order.destroy();
+		}
+
 		super.destroy();
 	}
 
 	update(): void {
+		if (this.destroyed) {
+			return;
+		}
+
 		// un-impact self after coming close enough to a halt
 		if (this.flags.impacted && this.velocity.length() < 0.01) {
 			this._flags.impacted = false;

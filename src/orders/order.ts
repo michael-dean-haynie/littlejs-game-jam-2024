@@ -14,6 +14,12 @@ export abstract class Order {
 		this._childOrder = null;
 		this._unitActorId = null; // to be assigned by unit while being processed
 		this._ability = null; // to be initialized after _unitActorId is provided
+		this._destroyed = false;
+	}
+
+	private _destroyed;
+	public get destroyed() {
+		return this._destroyed;
 	}
 
 	private _ability: Ability | null;
@@ -50,7 +56,24 @@ export abstract class Order {
 		this._childOrder = value;
 	}
 
+	// prevent further processing from happening
+	destroy(): void {
+		if (this.childOrder) {
+			this.childOrder.destroy();
+		}
+		if (this.ability) {
+			this.ability.destroy();
+		}
+		this.stage = "complete";
+		this._destroyed = true;
+	}
+
 	tryToProgress(): OrderStage {
+		if (this.destroyed) {
+			this.stage = "complete";
+			return this.stage;
+		}
+
 		// init
 		if (this.stage === "init") {
 			this._stage = "in progress";

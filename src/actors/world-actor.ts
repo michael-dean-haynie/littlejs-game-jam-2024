@@ -14,6 +14,7 @@ import {
 } from "littlejsengine";
 import { createNoise2D } from "simplex-noise";
 import { TreeEngineObject } from "../engine-objects/tree-engine-object";
+import type { Game } from "../game/game";
 import type { Message } from "../messages/message";
 import { UnitRemovedMessage } from "../messages/unit-removed-message";
 import { UnitTypes } from "../units/unit";
@@ -32,7 +33,10 @@ export interface TreeNoiseParams {
 }
 
 export class WorldActor extends Actor {
-	constructor(...params: ConstructorParameters<typeof Actor>) {
+	constructor(
+		private readonly _game: Game,
+		...params: ConstructorParameters<typeof Actor>
+	) {
 		super(...params);
 		this.actorDirectory.registerActorAlias("worldActor", this.actorId);
 		this._seed = Math.random();

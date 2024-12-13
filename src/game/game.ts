@@ -22,6 +22,7 @@ import { type TreeNoiseParams, WorldActor } from "../actors/world-actor";
 import { MessageBroker } from "../messages/message-broker";
 import { UI } from "../ui/ui";
 import { yeet } from "../utilities/utilities";
+import type { Score } from "./score";
 
 export class Game {
 	constructor() {
@@ -37,6 +38,7 @@ export class Game {
 		this._actorDirectory = new ActorDirectory();
 		this._messageBroker = new MessageBroker(this._actorDirectory);
 		this._worldActor = new WorldActor(
+			this,
 			this._actorDirectory,
 			this._messageBroker,
 		);
@@ -51,6 +53,7 @@ export class Game {
 			this._actorDirectory,
 			this._messageBroker,
 		);
+		this._scores = [];
 
 		this._playerActor = null;
 		this._enemyActor = null;
@@ -68,6 +71,7 @@ export class Game {
 	private readonly _messageBroker: MessageBroker;
 	private readonly _ui: UI;
 	private readonly _inputActor: InputActor;
+	private readonly _scores: Score[];
 
 	private readonly _worldActor: WorldActor;
 	get worldActor(): WorldActor {
@@ -91,8 +95,8 @@ export class Game {
 
 	update(): void {
 		this._inputActor.update(); // has special update() impl
-		this._worldActor.update();
 
+		this._worldActor.update();
 		// update player/enemy
 		if (this._playerActor) {
 			this.playerActor.update();
@@ -131,6 +135,7 @@ export class Game {
 
 		// re-create player/enemy actors
 		this._playerActor = new PlayerActor(
+			this,
 			this._actorDirectory,
 			this._messageBroker,
 		);
@@ -141,6 +146,11 @@ export class Game {
 	}
 
 	endRound(): void {
+		// save score
+		if (this._playerActor) {
+			this._scores.push(this._playerActor.score);
+		}
+
 		// destroy actors
 		this._actorDirectory.resetActors();
 		this._playerActor = null;

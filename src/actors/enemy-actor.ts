@@ -1,27 +1,20 @@
-import { vec2 } from "littlejsengine";
 import { IssueOrderMessage } from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
 import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
 import { UnitRemovedMessage } from "../messages/unit-removed-message";
 import { AttackUnitOrder } from "../orders/attack-unit-order";
-import { type UnitTypeName, UnitTypeNames, UnitTypes } from "../units/unit";
+import {
+	type UnitCountMap,
+	type UnitTypeName,
+	UnitTypeNames,
+	UnitTypes,
+	createUnitCountMap,
+} from "../units/unit";
 import { yeet } from "../utilities/utilities";
 import { Actor } from "./actor";
 import { PathingActor } from "./pathing-actor";
 import { UnitActor } from "./unit-actor";
 import { WorldActor } from "./world-actor";
-
-export type UnitCountMap = {
-	[K in UnitTypeName]: number;
-};
-
-export function createUnitCountMap(): UnitCountMap {
-	const map: Partial<UnitCountMap> = {};
-	for (const unitTypeName of UnitTypeNames) {
-		map[unitTypeName] = 0;
-	}
-	return map as UnitCountMap;
-}
 
 export class EnemyActor extends Actor {
 	constructor(...params: ConstructorParameters<typeof Actor>) {

@@ -40,17 +40,24 @@ export class MoveIntoAttackRangeAbility extends Ability {
 	}
 
 	protected applyEffects(): void {
-		const unitActor =
-			this._actorDirectory.getActor(this.castingUnitActorId, UnitActor) ??
-			yeet();
+		const unitActor = this._actorDirectory.getActor(
+			this.castingUnitActorId,
+			UnitActor,
+		);
 
-		const targetUnitActor =
-			this._actorDirectory.getActor(this._targetUnitActorId, UnitActor) ??
-			yeet();
+		const targetUnitActor = this._actorDirectory.getActor(
+			this._targetUnitActorId,
+			UnitActor,
+		);
 
-		const pathingActor =
-			this._actorDirectory.getActorByAlias("pathingActor", PathingActor) ??
-			yeet();
+		const pathingActor = this._actorDirectory.getActorByAlias(
+			"pathingActor",
+			PathingActor,
+		);
+
+		if (!unitActor || !targetUnitActor || !pathingActor) {
+			return; // do nothing, it will keep trying
+		}
 
 		const path = pathingActor.getPath(unitActor.pos, targetUnitActor.pos);
 

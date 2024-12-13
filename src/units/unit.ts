@@ -29,7 +29,8 @@ export const UnitTypes: UnitTypeMap = {
 		mass: 10,
 		color: new Color().setHex("#FF5733"), // orange
 		defaultWeapons: [WeaponTypes.pistol, WeaponTypes.shotgun],
-		hitpoints: 25,
+		// hitpoints: 25,
+		hitpoints: 1,
 	},
 	rabbit: {
 		name: "rabbit",
@@ -50,3 +51,15 @@ export const UnitTypes: UnitTypeMap = {
 		hitpoints: 40,
 	},
 } as const;
+
+export type UnitCountMap = {
+	[K in UnitTypeName]: number;
+};
+
+export function createUnitCountMap(): UnitCountMap {
+	const map: Partial<UnitCountMap> = {};
+	for (const unitTypeName of UnitTypeNames) {
+		map[unitTypeName] = 0;
+	}
+	return map as UnitCountMap;
+}
