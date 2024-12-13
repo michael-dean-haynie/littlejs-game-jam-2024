@@ -1,3 +1,4 @@
+import type { Vector2 } from "littlejsengine";
 import type { AbilityStage } from "../abilities/ability";
 import { AttackAbility } from "../abilities/attack-ability";
 import { UnitHasWeaponEquippedCheck } from "../abilities/unit-has-weapon-equipped-check";
@@ -8,6 +9,13 @@ import { Order } from "./order";
 import { ReloadOrder } from "./reload-order";
 
 export class AttackOrder extends Order {
+	constructor(
+		private readonly _targetPos: Vector2,
+		...params: ConstructorParameters<typeof Order>
+	) {
+		super(...params);
+	}
+
 	protected handleAbilityProgress(abilityStage: AbilityStage): void {
 		if (abilityStage === "check failed") {
 			if (this.ability.failedCheck instanceof UnitHasWeaponEquippedCheck) {
@@ -33,6 +41,10 @@ export class AttackOrder extends Order {
 	}
 
 	protected initializeAbility(): void {
-		this.ability = new AttackAbility(this.actorDirectory, this.messageBroker);
+		this.ability = new AttackAbility(
+			this._targetPos,
+			this.actorDirectory,
+			this.messageBroker,
+		);
 	}
 }

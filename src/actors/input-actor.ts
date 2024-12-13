@@ -2,6 +2,7 @@ import {
 	keyIsDown,
 	keyWasPressed,
 	keyWasReleased,
+	mousePos,
 	mouseWasPressed,
 } from "littlejsengine";
 import { CycleEquippedWeaponMessage } from "../messages/cycle-equipped-weapon-message";
@@ -65,7 +66,7 @@ export class InputActor extends Actor {
 			if (playerUnitActorId) {
 				this.messageBroker.publishMessage(
 					new IssueOrderMessage(
-						new AttackOrder(this.actorDirectory, this.messageBroker),
+						new AttackOrder(mousePos, this.actorDirectory, this.messageBroker),
 					),
 					{ actorIds: [playerUnitActorId] },
 				);

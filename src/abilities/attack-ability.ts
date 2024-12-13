@@ -1,3 +1,4 @@
+import type { Vector2 } from "littlejsengine";
 import type { ActorDirectory } from "../actors/actor-directory";
 import { UnitActor } from "../actors/unit-actor";
 import { WeaponActor } from "../actors/weapon-actor";
@@ -11,6 +12,7 @@ import { WeaponOffCooldownCheck } from "./weapon-off-cooldown-check";
 
 export class AttackAbility extends Ability {
 	constructor(
+		private readonly _targetPos: Vector2,
 		private readonly _actorDirectory: ActorDirectory,
 		private readonly _messageBroker: MessageBroker,
 		...params: ConstructorParameters<typeof Ability>
@@ -53,7 +55,7 @@ export class AttackAbility extends Ability {
 		const castingUnitActor =
 			this._actorDirectory.getActor(this.castingUnitActorId, UnitActor) ??
 			yeet();
-		this._messageBroker.publishMessage(new FireWeaponMessage(), {
+		this._messageBroker.publishMessage(new FireWeaponMessage(this._targetPos), {
 			actorIds: [castingUnitActor.equippedWeaponActorId ?? yeet()],
 		});
 	}

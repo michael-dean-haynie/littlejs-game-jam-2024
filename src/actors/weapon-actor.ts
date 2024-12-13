@@ -121,11 +121,12 @@ export class WeaponActor extends Actor {
 		const unitActor =
 			this.actorDirectory.getActor(this._unitActorId, UnitActor) ||
 			yeet("UNEXPECTED_NULLISH_VALUE");
+		const targetAngle = message.targetPos.subtract(unitActor.pos).angle();
 
 		const intersectingRules: IntersectingRayRoutingRule[] = [];
 		const aoeRays = this.calculateRayCount(this.weaponType);
 		const templateRay = vec2()
-			.setAngle(unitActor.facingAngle, this.weaponType.range) // start in direction unit is facing
+			.setAngle(targetAngle, this.weaponType.range) // start in direction of target
 			.rotate(-1 * (this.weaponType.spread / 2)); // adjust backward by half the spread angle for the first ray
 		const incrementAngle = this.weaponType.spread / (aoeRays - 1);
 		for (let rayNo = 0; rayNo < aoeRays; rayNo++) {

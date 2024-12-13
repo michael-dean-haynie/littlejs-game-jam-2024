@@ -55,9 +55,16 @@ export class AttackUnitAbility extends Ability {
 		const castingUnitActor =
 			this._actorDirectory.getActor(this.castingUnitActorId, UnitActor) ??
 			yeet();
-		this._messageBroker.publishMessage(new FireWeaponMessage(), {
-			actorIds: [castingUnitActor.equippedWeaponActorId ?? yeet()],
-		});
+		const targetUnitActor =
+			this._actorDirectory.getActor(this._targetUnitActorId, UnitActor) ??
+			yeet();
+
+		this._messageBroker.publishMessage(
+			new FireWeaponMessage(targetUnitActor.pos),
+			{
+				actorIds: [castingUnitActor.equippedWeaponActorId ?? yeet()],
+			},
+		);
 	}
 
 	protected get channelDuration(): number {
