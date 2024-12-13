@@ -2,12 +2,14 @@ import { vec2 } from "littlejsengine";
 import { IssueOrderMessage } from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
 import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
+import { UnitRemovedMessage } from "../messages/unit-removed-message";
 import { AttackUnitOrder } from "../orders/attack-unit-order";
 import { type UnitTypeName, UnitTypeNames, UnitTypes } from "../units/unit";
 import { yeet } from "../utilities/utilities";
 import { Actor } from "./actor";
 import { PathingActor } from "./pathing-actor";
 import { UnitActor } from "./unit-actor";
+import { WorldActor } from "./world-actor";
 
 export type UnitCountMap = {
 	[K in UnitTypeName]: number;
@@ -53,6 +55,9 @@ export class EnemyActor extends Actor {
 		if (message instanceof UnitHasDiedMessage) {
 			this.handleUnitHasDiedMessage(message);
 		}
+		if (message instanceof UnitRemovedMessage) {
+			this.handleUnitRemovedMessage(message);
+		}
 	}
 
 	private handleUnitHasDiedMessage(message: UnitHasDiedMessage): void {
@@ -61,10 +66,15 @@ export class EnemyActor extends Actor {
 		}
 	}
 
+	private handleUnitRemovedMessage(message: UnitRemovedMessage): void {
+		if (message.removedUnitTeam === "enemy") {
+			this._unitCounts[message.removedUnitType.name] -= 1;
+		}
+	}
+
 	private spawnEnemyUnit(unitTypeName: UnitTypeName): void {
-		const pathingActor =
-			this.actorDirectory.getActorByAlias("pathingActor", PathingActor) ??
-			yeet();
+		const worldActor =
+			this.actorDirectory.getActorByAlias("worldActor", WorldActor) ?? yeet();
 
 		const playerUnitActor =
 			this.actorDirectory.getActorByAlias("playerUnitActor", UnitActor) ??
@@ -73,7 +83,7 @@ export class EnemyActor extends Actor {
 		// spawn
 		const unitActor = new UnitActor(
 			UnitTypes[unitTypeName],
-			pathingActor.getRandomSpawnPoint(),
+			worldActor.getRandomSpawnPos(),
 			"enemy",
 			this.actorDirectory,
 			this.messageBroker,

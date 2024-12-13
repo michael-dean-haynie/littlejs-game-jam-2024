@@ -1,4 +1,4 @@
-import type { PathingActor, TreeNoiseParams } from "../actors/pathing-actor";
+import type { TreeNoiseParams } from "../actors/world-actor";
 import type { Game } from "../game/game";
 import { yeet } from "../utilities/utilities";
 
@@ -33,7 +33,7 @@ export class UI {
 		) ?? yeet()) as HTMLElement;
 
 		this.initUI();
-		this.generateTrees(); // initial call
+		// this.generateTrees(); // initial call
 	}
 
 	private _noiseTypeInput: HTMLInputElement;
@@ -59,13 +59,13 @@ export class UI {
 	private initUI() {
 		// bind inputs
 		this._seedButton.addEventListener("click", (event) => {
-			this._game.pathingActor.seed = Math.random();
+			this._game.worldActor.seed = Math.random();
 			this.generateTrees();
 		});
 
 		this._playTestNoiseButton.addEventListener("click", (event) => {
 			this.toggleUI();
-			this._game.startRound(this.getTreeNoiseParams());
+			this._game.startRound();
 		});
 
 		this._stopPlayTestNoiseButton.addEventListener("click", (event) => {
@@ -125,6 +125,7 @@ export class UI {
 	}
 
 	private generateTrees() {
-		this._game.pathingActor.generateTrees(this.getTreeNoiseParams());
+		this._game.worldActor.treeNoiseParams = this.getTreeNoiseParams();
+		this._game.worldActor.generateTrees();
 	}
 }

@@ -107,6 +107,7 @@ export class ActorDirectory {
 	/** destroy all but a few fundamental actors */
 	resetActors(): void {
 		const preservedActorIds: Array<string | undefined> = [
+			this.getActorIdByAlias("worldActor"),
 			this.getActorIdByAlias("pathingActor"),
 			this.getActorIdByAlias("inputActor"),
 		];
@@ -125,6 +126,7 @@ export const ActorDirectoryAliases = [
 	"enemyActor",
 	"playerUnitActor",
 	"pathingActor",
+	"worldActor",
 	"inputActor",
 ] as const;
 export type ActorDirectoryAlias = (typeof ActorDirectoryAliases)[number];

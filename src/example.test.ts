@@ -1,5 +1,6 @@
-import { PI, rand, randInt, vec2 } from "littlejsengine";
+import { PI, isOverlapping, rand, randInt, vec2 } from "littlejsengine";
 import { expect, test } from "vitest";
+import { posInRect } from "./utilities/utilities";
 
 test.skip("example 1", () => {
 	const spread = Math.PI / 2; // 90 degrees
@@ -19,7 +20,15 @@ test.skip("example 3", () => {
 	console.log(rand(8, 3));
 });
 
-test("example 4", () => {
-	console.log(typeof []);
-	console.log(Array.isArray([]));
+test.skip("example 4", () => {
+	console.log(isOverlapping(vec2(0, 0), vec2(5, 5), vec2(0, 0), vec2(0, 0)));
+	console.log(
+		isOverlapping(vec2(0, 0), vec2(5, 5), vec2(2.5, 2.5), vec2(0, 0)),
+	);
+	console.log(
+		isOverlapping(vec2(0, 0), vec2(5, 5), vec2(-2.5, -2.5), vec2(0, 0)),
+	);
+	console.log("=================");
+	console.log(posInRect(vec2(-2.5, -2.5), vec2(0, 0), vec2(5, 5)));
+	console.log(posInRect(vec2(2.5, 2.5), vec2(0, 0), vec2(5, 5)));
 });

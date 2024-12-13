@@ -1,80 +1,54 @@
-import alea from "alea";
 import { Astar, Grid } from "fast-astar";
 import {
-	RandomGenerator,
 	type Vector2,
 	engineObjects,
 	isOverlapping,
-	rand,
-	randInt,
 	vec2,
 } from "littlejsengine";
-import { createNoise2D } from "simplex-noise";
-import { v4 } from "uuid";
 import { ObstacleEngineObject } from "../engine-objects/obstacle-engine-object";
-import { PlayerObstacleEngineObject } from "../engine-objects/player-obstacle-engine-object";
-import { TreeEngineObject } from "../engine-objects/tree-engine-object";
 import type { Message } from "../messages/message";
-import { roundToNearest, yeet } from "../utilities/utilities";
+import { posInRect, yeet } from "../utilities/utilities";
 import { Actor } from "./actor";
+import type { WorldActor } from "./world-actor";
 
 export type AstarCoords = [x: number, y: number];
 
-export interface TreeNoiseParams {
-	noiseType: "plain" | "simplex";
-	threshold: number; // -1 - 1
-	scale?: number; // 1-20?
-	octaves?: number; // > 1 (maybe 1-5)
-	persistance?: number; // 0 - 1
-	lacunarity?: number; // > 1 (maybe 1-5)
-}
-
 export class PathingActor extends Actor {
 	constructor(
-		public readonly worldSize: Vector2,
-		public readonly arenaSize: Vector2,
-		public readonly spawnAreaSize: number,
-		public readonly worldCenter: Vector2,
-		private readonly _astarNodeSize: number,
+		private readonly _worldActor: WorldActor,
 		...params: ConstructorParameters<typeof Actor>
 	) {
 		super(...params);
 		this.actorDirectory.registerActorAlias("pathingActor", this.actorId);
+
+		// number of astar nodes inside one world unit, times world units in sector, for all 9 sectors
+		this._astarNodeSize = 1;
+		this._gridSize = vec2(
+			(1 / this._astarNodeSize) * (this._worldActor._sectorSize * 3),
+		);
 		this._pathCache = new Map<number, Vector2[]>();
 		this._grid = new Grid({ col: 10, row: 10 }); // will be replaced
 		this._astar = new Astar(this._grid); // will be replaced
-		this._seed = Math.random();
 	}
 
+	private readonly _astarNodeSize: number;
+	private readonly _gridSize: Vector2;
 	private _pathCache: Map<number, Vector2[]>;
-
 	private _grid: Grid;
-
 	private _astar: Astar;
-
-	private _seed: number;
-	get seed(): number {
-		return this._seed;
-	}
-	set seed(value: number) {
-		this._seed = value;
-	}
 
 	protected handleMessage<T extends Message>(message: T): void {}
 
-	getPath(origin: Vector2, destination: Vector2): Vector2[] {
-		const originCoords = this.vec2ToCoords(origin, this._astarNodeSize);
-		const destinationCoords = this.vec2ToCoords(
-			destination,
-			this._astarNodeSize,
-		);
+	getPath(origin: Vector2, destination: Vector2): Vector2[] | undefined {
+		const originASPos = this.worldPosToAstarPos(origin);
+		const destinationASPos = this.worldPosToAstarPos(destination);
 
 		// check cache
 		const cacheKey = this.getCacheKey(
-			originCoords[0],
-			originCoords[1],
-			destinationCoords[0],
-			destinationCoords[1],
+			originASPos.x,
+			originASPos.y,
+			destinationASPos.x,
+			destinationASPos.y,
 		);
 		const cachedPath = this._pathCache.get(cacheKey);
 		if (cachedPath) {
@@ -83,12 +57,17 @@ export class PathingActor extends Actor {
 
 		// find path
 		this.definePathingGrid(); // guess you gotta do it each time
-		const astarPath =
-			this._astar.search(originCoords, destinationCoords) ??
-			yeet("UNEXPECTED_NULLISH_VALUE");
+		const astarPath = this._astar.search(
+			[originASPos.x, originASPos.y],
+			[destinationASPos.x, destinationASPos.y],
+		);
+
+		if (!astarPath) {
+			return undefined;
+		}
 
 		const worldPath = astarPath.map((aspNode) =>
-			this.coordsToVec2(aspNode, this._astarNodeSize),
+			this.astarPosToWorldPos(vec2(aspNode[0], aspNode[1])),
 		);
 
 		this._pathCache.set(cacheKey, worldPath);
@@ -96,54 +75,50 @@ export class PathingActor extends Actor {
 		return worldPath;
 	}
 
-	getRandomSpawnPoint(): Vector2 {
-		let x: number;
-		let y: number;
+	/** converts a world position (in world units) into an Astar grid position (rounded) */
+	private worldPosToAstarPos(worldPos: Vector2) {
+		// note: the astar grid moves with the camera and covers the 9 adjacent sectors
+		// note: the astar grid is not centered on the camera at (0, 0), but at (width/2, height/2)
 
-		// note the +/- 2's to avoid the world edge barriers
-		const side = Math.floor(randInt(4));
-		switch (side) {
-			case 0: // top
-				x = rand(0 + 2, this.worldSize.x - 2);
-				y = rand(this.worldSize.y - this.spawnAreaSize, this.worldSize.y - 2);
-				break;
+		// position (in world units) of center of current sector
+		const sectorCenterWU = this._worldActor.sectorPos(
+			this._worldActor.sector(),
+		);
 
-			case 1: // right
-				x = rand(this.worldSize.x - this.spawnAreaSize, this.worldSize.x - 2);
-				y = rand(0 + 2, this.worldSize.y - 2);
-				break;
+		// offset (in world units) of worldPos param, relative to current sector center
+		const offsetFromSectorCenterWU = worldPos.subtract(sectorCenterWU);
 
-			case 2: // bottom
-				x = rand(0 + 2, this.worldSize.x - 2);
-				y = rand(0 + 2, this.spawnAreaSize);
-				break;
+		// scale world units to astar units
+		const offsetFromSectorCenterAU = offsetFromSectorCenterWU.scale(
+			1 / this._astarNodeSize,
+		);
 
-			case 3: // left
-				x = rand(0 + 2, this.spawnAreaSize);
-				y = rand(0 + 2, this.worldSize.y - 2);
-				break;
+		// translate over to astar origin (bottom left)
+		const astarPos = offsetFromSectorCenterAU.add(
+			vec2(this._gridSize).scale(0.5),
+		);
 
-			default:
-				x = 2.5;
-				y = 2.5;
-		}
-
-		return vec2(x, y);
+		// round values to snap to astar grid
+		return vec2(Math.round(astarPos.x), Math.round(astarPos.y));
 	}
 
-	/** converts a littlejs world Vector2 into Astar coordinates */
-	private vec2ToCoords(vec: Vector2, astarNodeSize: number): AstarCoords {
-		const xCoord = roundToNearest(vec.x, astarNodeSize) / astarNodeSize;
-		const yCoord = roundToNearest(vec.y, astarNodeSize) / astarNodeSize;
-		return [xCoord, yCoord];
-	}
+	/** converts an astar osition (in astar units) into a world position (in world units) */
+	private astarPosToWorldPos(astarPos: Vector2) {
+		// translate astar pos to be relative to center of sector (at (0, 0))
+		const offsetFromSectorCenterAU = astarPos.subtract(
+			vec2(this._gridSize).scale(0.5),
+		);
 
-	/** converts Astar coordinates into a littlejs world Vector2 */
-	private coordsToVec2(coords: AstarCoords, astarNodeSize: number): Vector2 {
-		const [xCoord, yCoord] = coords;
-		const x = xCoord * astarNodeSize;
-		const y = yCoord * astarNodeSize;
-		return vec2(x, y);
+		// scale from astar units into world units
+		const offsetFromSectorCenterWU = offsetFromSectorCenterAU.scale(
+			this._astarNodeSize,
+		);
+
+		// translate from relative to sector center to relative to world center
+		const sectorCenterWU = this._worldActor.sectorPos(
+			this._worldActor.sector(),
+		);
+		return offsetFromSectorCenterWU.add(sectorCenterWU);
 	}
 
 	private getCacheKey(x1: number, y1: number, x2: number, y2: number): number {
@@ -153,188 +128,11 @@ export class PathingActor extends Actor {
 		return x1 * 1000000 + y1 * 10000 + x2 * 100 + y2; // good as long as grid doesn't exceed 100x100
 	}
 
-	generateObstacles() {
-		// install player obstacles at arena edges (just outside of arena size)
-		const left = new PlayerObstacleEngineObject(
-			vec2(
-				this.worldCenter.x - this.arenaSize.x / 2 - 0.5,
-				this.worldSize.y / 2,
-			),
-			vec2(1, this.arenaSize.y),
-		);
-		const right = new PlayerObstacleEngineObject(
-			vec2(
-				this.worldCenter.x + this.arenaSize.x / 2 + 0.5,
-				this.worldSize.y / 2,
-			),
-			vec2(1, this.arenaSize.y),
-		);
-		const top = new PlayerObstacleEngineObject(
-			vec2(
-				this.worldSize.x / 2,
-				this.worldCenter.y + this.arenaSize.y / 2 + 0.5,
-			),
-			vec2(this.arenaSize.x, 1),
-		);
-		const bottom = new PlayerObstacleEngineObject(
-			vec2(
-				this.worldSize.x / 2,
-				this.worldCenter.y - this.arenaSize.y / 2 - 0.5,
-			),
-			vec2(this.arenaSize.x, 1),
-		);
-
-		// install obstacles at world edges (taking up 1 space just inside world size because barriers need registered by astar pathing grid)
-		const wLeft = new ObstacleEngineObject(
-			false,
-			vec2(0.5, this.worldSize.y / 2),
-			vec2(1, this.worldSize.y),
-		);
-		const wRight = new ObstacleEngineObject(
-			false,
-			vec2(this.worldSize.x - 0.5, this.worldSize.y / 2),
-			vec2(1, this.worldSize.y),
-		);
-		const wTop = new ObstacleEngineObject(
-			false,
-			vec2(this.worldSize.x / 2, this.worldSize.y - 0.5),
-			vec2(this.worldSize.x, 1),
-		);
-		const wBottom = new ObstacleEngineObject(
-			false,
-			vec2(this.worldSize.x / 2, 0.5),
-			vec2(this.worldSize.x, 1),
-		);
-	}
-
-	generateTrees(params: TreeNoiseParams): void {
-		const { noiseType, threshold } = params;
-		if (noiseType === "plain") {
-			this.generateTreesPlain(threshold);
-		} else if (noiseType === "simplex") {
-			const { scale, octaves, persistance, lacunarity } = params;
-			if (
-				scale === undefined ||
-				octaves === undefined ||
-				persistance === undefined ||
-				lacunarity === undefined
-			) {
-				throw new Error("missing params");
-			}
-
-			this.generateTreesSimplex(
-				threshold,
-				scale,
-				octaves,
-				persistance,
-				lacunarity,
-			);
-		}
-	}
-
-	private generateTreesPlain(threshold: number): void {
-		this.clearAllTrees();
-
-		const prng = alea(this._seed);
-
-		for (let x = 0; x < this.worldSize.x; x++) {
-			for (let y = 0; y < this.worldSize.y; y++) {
-				const value = prng() * 2 - 1; // -1 - 1
-				if (value < threshold) {
-					const obstacle = new TreeEngineObject(true, vec2(x, y), vec2(1, 1));
-				}
-			}
-		}
-
-		this.clearTreesInSpawningAreas();
-	}
-
-	private generateTreesSimplex(
-		threshold: number, // -1 - 1
-		scale: number, // 1-20?
-		octaves: number, // > 1 (maybe 1-5)
-		persistance: number, // 0 - 1
-		lacunarity: number, // > 1 (maybe 1-5)
-	): void {
-		this.clearAllTrees();
-
-		if (scale <= 0) {
-			// biome-ignore lint: reasignment of param is safeguarding
-			scale = 0.00001;
-		}
-
-		// init 2d array
-		const noiseMap = Array.from({ length: this.worldSize.x }, () =>
-			Array(this.worldSize.y).fill(0),
-		);
-
-		// fill in noise map
-		const prng = alea(this._seed);
-		const noise2d = createNoise2D(prng);
-		for (let x = 0; x < this.worldSize.x; x++) {
-			for (let y = 0; y < this.worldSize.y; y++) {
-				let amplitude = 1;
-				let frequency = 1;
-				let noiseHeight = 0;
-
-				for (let octave = 0; octave < octaves; octave++) {
-					const sampleX = (x / scale) * frequency;
-					const sampleY = (y / scale) * frequency;
-
-					const simplexValue = noise2d(sampleX, sampleY); // value between -1 and 1
-					noiseHeight += simplexValue * amplitude;
-					// noiseMap[x][y] = simplexValue;
-
-					amplitude *= persistance;
-					frequency *= lacunarity;
-				}
-
-				noiseMap[x][y] = noiseHeight;
-			}
-		}
-
-		// create trees based off of noise map values
-		for (let x = 0; x < this.worldSize.x; x++) {
-			for (let y = 0; y < this.worldSize.y; y++) {
-				if (noiseMap[x][y] < threshold) {
-					const tree = new TreeEngineObject(true, vec2(x, y), vec2(1, 1));
-				}
-			}
-		}
-
-		this.clearTreesInSpawningAreas();
-	}
-
-	private clearAllTrees(): void {
-		for (const eo of engineObjects) {
-			if (eo instanceof TreeEngineObject) {
-				eo.destroy();
-			}
-		}
-	}
-
-	private clearTreesInSpawningAreas(): void {
-		for (const eo of engineObjects) {
-			if (eo instanceof TreeEngineObject) {
-				if (
-					eo.pos.x < this.spawnAreaSize ||
-					eo.pos.x > this.worldSize.x - this.spawnAreaSize ||
-					eo.pos.y < this.spawnAreaSize ||
-					eo.pos.y > this.worldSize.y - this.spawnAreaSize
-				) {
-					eo.destroy();
-				}
-			}
-		}
-	}
-
 	private definePathingGrid(): void {
 		// define grid
-		const gridColumns = this.worldSize.x / this._astarNodeSize;
-		const gridRows = this.worldSize.y / this._astarNodeSize;
 		this._grid = new Grid({
-			col: gridColumns,
-			row: gridRows,
+			col: this._gridSize.x,
+			row: this._gridSize.y,
 		});
 
 		// add obstacles to grid v2
@@ -350,29 +148,27 @@ export class PathingActor extends Actor {
 			for (let x = startX; x < startX + eo.size.x; x += step) {
 				for (let y = startY; y < startY + eo.size.y; y += step) {
 					const worldPos = vec2(x, y);
-					const coords = this.vec2ToCoords(worldPos, this._astarNodeSize);
+					const astarPos = this.worldPosToAstarPos(worldPos);
 					if (
-						coords[0] < 0 ||
-						coords[0] >= gridColumns ||
-						coords[1] < 0 ||
-						coords[1] >= gridRows
+						astarPos.x < 0 ||
+						astarPos.x >= this._gridSize.x ||
+						astarPos.y < 0 ||
+						astarPos.y >= this._gridSize.y
 					) {
 						continue; // don't try to add obstacles outside the grid limits - duh.
 					}
 
-					const worldPosOfNearestCoords = this.coordsToVec2(
-						coords,
-						this._astarNodeSize,
-					);
+					const worldPosOfNearestAstarNode = this.astarPosToWorldPos(astarPos);
 					if (
-						isOverlapping(
-							eo.pos,
-							eo.size,
-							worldPosOfNearestCoords,
-							vec2(0.5, 0.5),
-						)
+						posInRect(worldPosOfNearestAstarNode, eo.pos, eo.size)
+						// isOverlapping(
+						// 	eo.pos,
+						// 	eo.size,
+						// 	worldPosOfNearestAstarNode,
+						// 	vec2(0.5, 0.5),
+						// )
 					) {
-						this._grid.set(coords, "value", 1);
+						this._grid.set([astarPos.x, astarPos.y], "value", 1);
 						// debugRect(worldPosOfNearestCoords, vec2(1, 1), "#FFA500"); // orange
 					}
 				}

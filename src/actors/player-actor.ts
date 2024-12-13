@@ -1,3 +1,4 @@
+import { vec2 } from "littlejsengine";
 import type { Message } from "../messages/message";
 import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
 import { UnitTypes } from "../units/unit";
@@ -11,14 +12,10 @@ export class PlayerActor extends Actor {
 		super(...params);
 		this.actorDirectory.registerActorAlias("playerActor", this.actorId);
 
-		const pathingActor =
-			this.actorDirectory.getActorByAlias("pathingActor", PathingActor) ??
-			yeet("UNEXPECTED_NULLISH_VALUE");
-
 		// create prey unit
 		const unitActor = new UnitActor(
 			UnitTypes.prey,
-			pathingActor.worldCenter,
+			vec2(0, 0),
 			"player",
 			this.actorDirectory,
 			this.messageBroker,

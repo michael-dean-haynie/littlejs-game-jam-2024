@@ -26,5 +26,6 @@ export default defineConfig(({ mode }) => ({
 	},
 	test: {
 		environment: "jsdom",
+		setupFiles: "./src/test-setup.ts", // required to mock out AudioContext used by littlejs
 	},
 }));

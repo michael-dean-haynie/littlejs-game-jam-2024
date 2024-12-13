@@ -73,6 +73,17 @@ export class InputActor extends Actor {
 			}
 		}
 
+		// cycle weapon
+		if (mouseWasPressed(2)) {
+			const playerUnitActorId =
+				this.actorDirectory.getActorIdByAlias("playerUnitActor");
+			if (playerUnitActorId) {
+				this.messageBroker.publishMessage(new CycleEquippedWeaponMessage(), {
+					actorIds: [playerUnitActorId],
+				});
+			}
+		}
+
 		// reload
 		if (keyWasPressed("KeyR")) {
 			const playerUnitActorId =
@@ -89,16 +100,6 @@ export class InputActor extends Actor {
 
 		if (keyWasPressed("Backquote")) {
 			this._ui.toggleUI();
-		}
-
-		if (keyWasPressed("ShiftLeft")) {
-			const playerUnitActorId =
-				this.actorDirectory.getActorIdByAlias("playerUnitActor");
-			if (playerUnitActorId) {
-				this.messageBroker.publishMessage(new CycleEquippedWeaponMessage(), {
-					actorIds: [playerUnitActorId],
-				});
-			}
 		}
 	}
 
