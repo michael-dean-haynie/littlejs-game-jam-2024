@@ -57,22 +57,27 @@ export class PathingActor extends Actor {
 
 		// find path
 		this.definePathingGrid(); // guess you gotta do it each time
-		const astarPath = this._astar.search(
-			[originASPos.x, originASPos.y],
-			[destinationASPos.x, destinationASPos.y],
-		);
+		try {
+			const astarPath = this._astar.search(
+				[originASPos.x, originASPos.y],
+				[destinationASPos.x, destinationASPos.y],
+			);
 
-		if (!astarPath) {
+			if (!astarPath) {
+				return undefined;
+			}
+
+			const worldPath = astarPath.map((aspNode) =>
+				this.astarPosToWorldPos(vec2(aspNode[0], aspNode[1])),
+			);
+
+			this._pathCache.set(cacheKey, worldPath);
+
+			return worldPath;
+		} catch (e) {
+			console.error('astar be like "nope"');
 			return undefined;
 		}
-
-		const worldPath = astarPath.map((aspNode) =>
-			this.astarPosToWorldPos(vec2(aspNode[0], aspNode[1])),
-		);
-
-		this._pathCache.set(cacheKey, worldPath);
-
-		return worldPath;
 	}
 
 	/** converts a world position (in world units) into an Astar grid position (rounded) */
