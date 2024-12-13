@@ -2,6 +2,7 @@ import {
 	type Vector2,
 	engineObjectsDestroy,
 	setCameraPos,
+	setCameraScale,
 	setCanvasFixedSize,
 	setObjectDefaultDamping,
 	setShowWatermark,
@@ -33,7 +34,7 @@ export class Game {
 		// setObjectDefaultFriction(0);
 		// setObjectDefaultElasticity(1);
 		// setCameraScale(7);
-		setShowWatermark(false);
+		// setShowWatermark(false);
 
 		this._actorDirectory = new ActorDirectory();
 		this._messageBroker = new MessageBroker(this._actorDirectory);
@@ -151,6 +152,9 @@ export class Game {
 	}
 
 	endRound(): void {
+		// update score for this round
+		(this._scores.at(-1) ?? yeet()).end = Date.now();
+
 		// destroy actors
 		this._actorDirectory.resetActors();
 		this._playerActor = null;

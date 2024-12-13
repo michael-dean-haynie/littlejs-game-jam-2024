@@ -27,12 +27,23 @@ body {
 	z-index: 1;
 	font-size: 2vw;
 	display: grid;
-	grid-template-rows: max-content;
+	grid-template-rows: repeat(3, max-content);
 	grid-template-columns: 1em 1fr 1em;
 }
 
 /* SCORE OVERLAY */
 #scoreOverlay {
 	grid-column: 2 / -2;
+	grid-row: 3;
+	color: white;
+}
+#roundOverlay {
+	grid-column: 2 / -2;
+	grid-row: 1;
+	color: white;
+}
+#durationOverlay {
+	grid-column: 2 / -2;
+	grid-row: 2;
 	color: white;
 }
