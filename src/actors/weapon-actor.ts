@@ -6,6 +6,7 @@ import type {
 	IntersectingRayRoutingRule,
 	MessageRoutingRules,
 } from "../messages/message-routing-rules";
+import { PlayerFiredWeaponMessage } from "../messages/player-fired-weapon-message";
 import { ReloadWeaponMessage } from "../messages/reload-weapon-message";
 import { DamageUnitMessage } from "../messages/take-damage-message";
 import { WeaponEquippedMessage } from "../messages/weapon-equipped-message";
@@ -14,6 +15,7 @@ import { yeet } from "../utilities/utilities";
 import type { WeaponType } from "../weapons/weapon";
 import { WeaponFlags } from "../weapons/weapon-flags";
 import { Actor } from "./actor";
+import { PlayerActor } from "./player-actor";
 import { UnitActor } from "./unit-actor";
 
 export class WeaponActor extends Actor {
@@ -161,6 +163,16 @@ export class WeaponActor extends Actor {
 			new DamageUnitMessage(this._unitActorId, this.weaponType.damage),
 			routeRules,
 		);
+
+		// update score
+		if (unitActor.team === "player") {
+			const playerActorId =
+				this.actorDirectory.getActorIdByAlias("playerActor") ?? yeet();
+			this.messageBroker.publishMessage(
+				new PlayerFiredWeaponMessage(this.weaponType.name),
+				{ actorIds: [playerActorId] },
+			);
+		}
 
 		// auto-start reload if clip is empty
 		if (this.flags.clipIsEmpty) {

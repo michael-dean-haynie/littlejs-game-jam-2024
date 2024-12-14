@@ -2,6 +2,7 @@ import { vec2 } from "littlejsengine";
 import type { Game } from "../game/game";
 import type { Score } from "../game/score";
 import type { Message } from "../messages/message";
+import { PlayerFiredWeaponMessage } from "../messages/player-fired-weapon-message";
 import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
 import { UnitTypes } from "../units/unit";
 import { yeet } from "../utilities/utilities";
@@ -37,6 +38,9 @@ export class PlayerActor extends Actor {
 		if (message instanceof UnitHasDiedMessage) {
 			this.handleUnitHasDiedMessage(message);
 		}
+		if (message instanceof PlayerFiredWeaponMessage) {
+			this.handlePlayerFiredWeaponMessage(message);
+		}
 	}
 
 	private handleUnitHasDiedMessage(message: UnitHasDiedMessage): void {
@@ -46,6 +50,12 @@ export class PlayerActor extends Actor {
 		if (message.deadUnitTeam === "enemy") {
 			this.score.kills[message.deadUnitType.name] += 1;
 		}
+	}
+
+	private handlePlayerFiredWeaponMessage(
+		message: PlayerFiredWeaponMessage,
+	): void {
+		this.score.shots[message.weaponTypeName] += 1;
 	}
 }
 

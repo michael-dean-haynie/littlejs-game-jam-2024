@@ -32,9 +32,7 @@ export class ScoreOverlay {
 	update() {
 		this._scoreElm.textContent = this.currentScore.totalKills.toString();
 		this._roundElm.textContent = this.currentRound.toString();
-		this._durationElm.textContent = formatTime(
-			this.currentScore.duration / 1000,
-		);
+		this._durationElm.textContent = this.currentScore.durationFormatted;
 	}
 
 	/** get the score for the latest round, or a blank score if no rounds exist yet */

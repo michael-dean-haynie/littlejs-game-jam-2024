@@ -62,7 +62,8 @@ export class MoveIntoAttackRangeAbility extends Ability {
 		const path = pathingActor.getPath(unitActor.pos, targetUnitActor.pos);
 
 		if (!path) {
-			throw new Error("could not find path");
+			// throw new Error("could not find path");
+			return; // do nothing, should keep trying
 		}
 
 		// for (const wpNode of path) {

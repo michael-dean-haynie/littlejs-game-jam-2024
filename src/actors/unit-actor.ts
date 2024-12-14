@@ -197,20 +197,20 @@ export class UnitActor extends Actor {
 		);
 		if (this.hitpoints <= 0) {
 			this._flags.dying = true;
-			const killingUnitActor =
-				this.actorDirectory.getActor<UnitActor>(
-					message.damagingUnitActorId,
-					UnitActor,
-				) || yeet("UNEXPECTED_NULLISH_VALUE");
-
-			this._deathMessage = new UnitHasDiedMessage(
-				this.actorId,
-				this.unitType,
-				this.team,
-				killingUnitActor.actorId,
-				killingUnitActor.unitType,
-				killingUnitActor.team,
+			const killingUnitActor = this.actorDirectory.getActor<UnitActor>(
+				message.damagingUnitActorId,
+				UnitActor,
 			);
+			if (killingUnitActor) {
+				this._deathMessage = new UnitHasDiedMessage(
+					this.actorId,
+					this.unitType,
+					this.team,
+					killingUnitActor.actorId,
+					killingUnitActor.unitType,
+					killingUnitActor.team,
+				);
+			}
 		}
 	}
 

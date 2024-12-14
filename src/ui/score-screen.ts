@@ -1,10 +1,11 @@
+import type { Game } from "../game/game";
 import { Score } from "../game/score";
-import { UnitTypeNames } from "../units/unit";
 import { yeet } from "../utilities/utilities";
 import { elmById } from "./score-overlay";
 
 export class ScoreScreen {
 	private readonly _containerElm: HTMLElement;
+	private readonly _titleElm: HTMLElement;
 
 	// tab content
 	private readonly _scoreTabContentElm: HTMLElement;
@@ -19,20 +20,22 @@ export class ScoreScreen {
 
 	private readonly _resizeObserver: ResizeObserver;
 
-	constructor(private readonly _scores: Score[]) {
+	constructor(
+		private readonly _game: Game,
+		private readonly _scores: Score[],
+	) {
 		// TODO: remove hardcoded score for testing ui
-		this._scores = [];
-		this._scores.push(new Score());
-		this.curScore.kills.rabbit = 23;
-		this.curScore.kills.pig = 4;
-		this.curScore.shots.bat = 14;
-		this.curScore.shots.pistol = 44;
-		this.curScore.shots.shotgun = 20;
+		// this._scores = [];
+		// this._scores.push(new Score());
+		// this.curScore.kills.rabbit = 23;
+		// this.curScore.kills.pig = 4;
+		// this.curScore.shots.bat = 14;
+		// this.curScore.shots.pistol = 44;
+		// this.curScore.shots.shotgun = 20;
 
 		this._containerElm = elmById("scoreScreenContainer");
-		this.toggle(); // immediately hide
-		// TODO: remove (show immediately, for develpment)
-		this.toggle();
+		this._titleElm = elmById("scoreScreenTitle");
+		this.hide(); // immediately hide
 		this._resizeObserver = new ResizeObserver((entries, observer) => {
 			for (const entry of entries) {
 				if (entry.target instanceof HTMLCanvasElement) {
@@ -41,7 +44,7 @@ export class ScoreScreen {
 					const ctnrHeight = blockSize * 0.8;
 					this._containerElm.style.height = `${ctnrHeight}px`;
 					this._containerElm.style.width = `${ctnrWidth}px`;
-					this._containerElm.style.fontSize = `${inlineSize / 100}px`;
+					this._containerElm.style.fontSize = `${inlineSize / 75}px`;
 				}
 			}
 		});
@@ -76,16 +79,29 @@ export class ScoreScreen {
 		this._upgradesTabBtnElm.addEventListener("click", () =>
 			this.switchToTab(this._upgradesTabBtnElm, this._upgradesTabContentElm),
 		);
+		this._startBtnElm.addEventListener("click", () => {
+			return this._game.startRound();
+		});
+	}
 
-		// select score tab, initially
-		this._scoreTabBtnElm.click();
+	show(): void {
+		this._titleElm.textContent = `ROUND ${this._scores.length}`;
+		this.updateScoreTab();
+		this._scoreTabBtnElm.click(); // select score tab, initially
+
+		this._containerElm.classList.remove("hidden");
+	}
+
+	hide(): void {
+		this._containerElm.classList.add("hidden");
 	}
 
 	toggle(): void {
 		if (this._containerElm.classList.contains("hidden")) {
-			this.updateScoreTab();
+			this.show();
+		} else {
+			this.hide();
 		}
-		this._containerElm.classList.toggle("hidden");
 	}
 
 	private switchToTab(
@@ -119,55 +135,72 @@ export class ScoreScreen {
 
 	private updateScoreTab(): void {
 		// remove all generated rows
-		for (const genRow of document.querySelectorAll("#scoreTable .genRow")) {
+		for (const genRow of document.querySelectorAll("#scoreTable .gen-row")) {
 			genRow.remove();
 		}
 
 		// kills
 		const killsTr = elmById("scoreTableKills") as HTMLTableRowElement;
-		const killsValueTd = elmById(
-			"scoreTableKillsValue",
-		) as HTMLTableCellElement;
-		const killsScoreTd = elmById(
-			"scoreTableKillsScore",
-		) as HTMLTableCellElement;
+		const killsValueElm = elmById("scoreTableKillsValue") as HTMLElement;
+		const killsScoreElm = elmById("scoreTableKillsScore") as HTMLElement;
 
-		killsValueTd.innerText = this.curScore.totalKills.toString();
-		killsScoreTd.innerText = this.curScore.totalKillsScore.toString();
+		killsValueElm.innerText = this.curScore.totalKills.toString();
+		killsScoreElm.innerText = this.curScore.totalKillsScore.toString();
 
 		// add row for each unit type (skip prey)
 		for (const rowData of this.curScore.killsScoreRows) {
 			const rowHtml = `
-			<tr class="genRow">
-				<td class="ind1">${rowData.name}</td>
-				<td class="value-td">${rowData.value}</td>
-				<td class="score-td">${rowData.score}</td>
+			<tr class="gen-row">
+				<td class="ind-1">${rowData.name}</td>
+				<td class="value">
+					<span class="tiny">x</span>
+					<span>${rowData.value}</span>
+					<span class="tiny">=</span>
+				</td>
+				<td class="score">${rowData.score}</td>
 			</tr>`;
 			killsTr.insertAdjacentHTML("afterend", rowHtml);
 		}
 
 		// shots
 		const shotsTr = elmById("scoreTableShots") as HTMLTableRowElement;
-		const shotsValueTd = elmById(
-			"scoreTableShotsValue",
-		) as HTMLTableCellElement;
-		const shotsScoreTd = elmById(
-			"scoreTableShotsScore",
-		) as HTMLTableCellElement;
+		const shotsValueElm = elmById("scoreTableShotsValue") as HTMLElement;
+		const shotsScoreElm = elmById("scoreTableShotsScore") as HTMLElement;
 
-		shotsValueTd.innerText = this.curScore.totalShots.toString();
-		shotsScoreTd.innerText = this.curScore.totalShotsScore.toString();
+		shotsValueElm.innerText = this.curScore.totalShots.toString();
+		shotsScoreElm.innerText = this.curScore.totalShotsScore.toString();
 
 		// add row for each unit type (skip prey)
 		for (const rowData of this.curScore.shotsScoreRows) {
 			const rowHtml = `
-			<tr class="genRow">
-				<td class="ind1">${rowData.name}</td>
-				<td class="value-td">${rowData.value}</td>
-				<td class="score-td">${rowData.score}</td>
+			<tr class="gen-row">
+				<td class="ind-1">${rowData.name}</td>
+				<td class="value">
+					<span class="tiny">x</span>
+					<span>${rowData.value}</span>
+					<span class="tiny">=</span>
+				</td>
+				<td class="score">${rowData.score}</td>
 			</tr>`;
 			shotsTr.insertAdjacentHTML("afterend", rowHtml);
 		}
+
+		// achievements
+		// TODO: fill this in
+
+		// duration
+		const durationTr = elmById("scoreTableDuration") as HTMLTableRowElement;
+		const durationValueElm = elmById("scoreTableDurationValue") as HTMLElement;
+		const durationScoreElm = elmById("scoreTableDurationScore") as HTMLElement;
+
+		durationValueElm.innerText = this.curScore.durationFormatted.toString();
+		durationScoreElm.innerText = this.curScore.durationScore.toString();
+
+		// total
+		const totalTr = elmById("scoreTableTotal") as HTMLTableRowElement;
+		const totalScoreElm = elmById("scoreTableTotalScore") as HTMLElement;
+
+		totalScoreElm.innerText = this.curScore.totalScore.toString();
 	}
 
 	/** get the score for the latest round, or a blank score if no rounds exist yet */

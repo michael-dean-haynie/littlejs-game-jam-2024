@@ -23,10 +23,11 @@ import { UnitActor } from "../actors/unit-actor";
 import { WeaponActor } from "../actors/weapon-actor";
 import { type TreeNoiseParams, WorldActor } from "../actors/world-actor";
 import { MessageBroker } from "../messages/message-broker";
+import { IntroScreen } from "../ui/intro-screen";
 import { ScoreOverlay } from "../ui/score-overlay";
 import { ScoreScreen } from "../ui/score-screen";
 import { UI } from "../ui/ui";
-import { loadHtmlComponent, yeet } from "../utilities/utilities";
+import { yeet } from "../utilities/utilities";
 import { Score } from "./score";
 
 export class Game {
@@ -63,7 +64,8 @@ export class Game {
 		);
 		this._scores = [];
 		this._scoreOverlay = new ScoreOverlay(this._scores);
-		this._scoreScreen = new ScoreScreen(this._scores);
+		this._scoreScreen = new ScoreScreen(this, this._scores);
+		this._introScreen = new IntroScreen(this);
 
 		this._playerActor = null;
 		this._enemyActor = null;
@@ -81,6 +83,7 @@ export class Game {
 	private readonly _ui: UI;
 	private readonly _scoreOverlay: ScoreOverlay;
 	private readonly _scoreScreen: ScoreScreen;
+	private readonly _introScreen: IntroScreen;
 	private readonly _inputActor: InputActor;
 	/** score data from each completed round */
 	private readonly _scores: Score[];
@@ -184,6 +187,8 @@ export class Game {
 	}
 
 	startRound() {
+		this._scoreScreen.hide();
+
 		// destroy actors
 		this._actorDirectory.resetActors();
 
@@ -210,6 +215,7 @@ export class Game {
 	endRound(): void {
 		// update score for this round
 		(this._scores.at(-1) ?? yeet()).end = Date.now();
+		this._scoreScreen.show();
 
 		// destroy actors
 		this._actorDirectory.resetActors();
@@ -218,6 +224,9 @@ export class Game {
 
 		// destroy any remaining engine objects
 		engineObjectsDestroy();
+
+		// re-seed noise for next round
+		this._worldActor.seed = Math.random();
 	}
 }
 function rbg(

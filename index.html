@@ -9,6 +9,11 @@
 <body>
     <script src="src/index.ts" type="module"></script>
 
+    <div id="introScreenContainer">
+        <div id="introText">Intro text</div>
+        <!-- <button id="introBtn">Next</button> -->
+    </div>
+
     <!-- UI CONTAINER -->
     <div id="uiContainer" class="hidden">
         <button id="seed" type="button">Generate New Seed</button>
@@ -79,32 +84,52 @@
 
     <!-- SCORE SCREEN CONTAINER -->
      <div id="scoreScreenContainer">
-        <div id="scoreScreenTitle">Round 1 Over</div>
+        <div id="scoreScreenTitle">ROUND 1</div>
         <div id="scoreScreenContent">
 
             <!-- Score Tab -->
             <div id="scoreTabContent" class="tab-content hidden">
                 <table id="scoreTable">
                     <tbody>
-                        <tr id="scoreTableKills">
+                        <tr id="scoreTableKills" class="static-row">
                             <td>Kills</td>
-                            <td id="scoreTableKillsValue" class="value-td">5</td>
-                            <td id="scoreTableKillsScore" class="score-td">50</td>
+                            <td class="value agg-value">
+                                <span class="tiny">x</span>
+                                <span id="scoreTableKillsValue">0</span>
+                                <span class="tiny">=</span>
+                            </td>
+                            <td id="scoreTableKillsScore" class="score agg-score">0</td>
                         </tr>
-                        <tr id="scoreTableShots">
+                        <tr id="scoreTableShots" class="static-row">
                             <td>Shots Fired</td>
-                            <td id="scoreTableShotsValue" class="value-td">5</td>
-                            <td id="scoreTableShotsScore" class="score-td">50</td>
+                            <td class="value agg-value">
+                                <span class="tiny">x</span>
+                                <span id="scoreTableShotsValue">0</span>
+                                <span class="tiny">=</span>
+                            </td>
+                            <td id="scoreTableShotsScore" class="score agg-score">0</td>
                         </tr>
-                        <tr id="scoreTableAchieve">
+                        <tr id="scoreTableAchieve" class="static-row">
                             <td>Achievements</td>
-                            <td id="scoreTableAchieveValue" class="value-td">5</td>
-                            <td id="scoreTableAchieveScore" class="score-td">50</td>
+                            <td class="value">
+                                <span class="tiny">x</span>
+                                <span id="scoreTableAchieveValue">0</span>
+                                <span class="tiny">=</span>
+                            </td>
+                            <td id="scoreTableAchieveScore" class="score">0</td>
                         </tr>
-                        <tr id="scoreTableDuration">
+                        <tr id="scoreTableDuration" class="static-row">
                             <td>Duration</td>
-                            <td id="scoreTableDurationValue" class="value-td">5</td>
-                            <td id="scoreTableScore" class="score-td">50</td>
+                            <td class="value">
+                                <span id="scoreTableDurationValue">0</span>
+                                <span class="tiny">=</span>
+                            </td>
+                            <td id="scoreTableDurationScore" class="score">0</td>
+                        </tr>
+                        <tr id="scoreTableTotal" class="static-row">
+                            <td>Total</td>
+                            <td class="value"></td>
+                            <td id="scoreTableTotalScore" class="score">0</td>
                         </tr>
                     </tbody>
                 </table>

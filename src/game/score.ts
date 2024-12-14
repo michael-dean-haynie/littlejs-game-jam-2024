@@ -1,3 +1,4 @@
+import { formatTime } from "littlejsengine";
 import {
 	type UnitCountMap,
 	type UnitTypeName,
@@ -102,5 +103,17 @@ export class Score {
 	/** how long the round has lasted (in ms) */
 	get duration(): number {
 		return (this.end || Date.now()) - this._start;
+	}
+
+	get durationFormatted(): string {
+		return formatTime(this.duration / 1000);
+	}
+
+	get durationScore(): number {
+		return Math.floor(this.duration / 1000);
+	}
+
+	get totalScore(): number {
+		return this.totalShotsScore + this.totalKillsScore + this.durationScore;
 	}
 }

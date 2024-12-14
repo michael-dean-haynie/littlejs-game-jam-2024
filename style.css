@@ -1,3 +1,11 @@
+:root {
+	--light-text: #eaecee;
+	--faded-light-text: #eaecee8a;
+
+	--score-text: #f1c40f;
+	--faded-score-text: #f1c40f81;
+}
+
 body {
 	font-family: Arial, sans-serif;
 }
@@ -6,19 +14,30 @@ body {
 	display: none !important;
 }
 
-td.ind1 {
-	padding-left: 1em;
+.tiny {
+	font-size: .5em;
 }
 
-.value-td {
-	text-align: right;
-}
-.score-td {
-	text-align: right;
+/* INTRO SCREEN */
+#introScreenContainer {
+	position: absolute;
+	/* higher than #overlayContainer */
+	z-index: 2;
+	height: 100%;
+	width: 100%;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-color: black;
+	color: white;
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
 
 /* UI CONTINER */
-
 #uiContainer {
 	position: absolute;
 	/* higher than #overlayContainer and #scoreScreenContainer */
@@ -66,7 +85,8 @@ td.ind1 {
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
-	background-color: white;
+	background-color: #17202afb;
+	color: var(--light-text);
 
 	display: grid;
 	grid-template-rows: auto 1fr auto;
@@ -89,8 +109,56 @@ td.ind1 {
 }
 
 #scoreScreenContent .tab-content {
-	color: inherit;
-	/* TODO: remove? */
+	height: 100%;
+	width: 100%;
+}
+
+#scoreTabContent {
+	display: grid;
+	grid-template: 1fr / 1fr;
+	justify-items: center;
+	align-items: center;
+}
+
+#scoreTable {
+	width: 20em;
+	border-collapse: collapse;
+	/* border-spacing: 0; */
+}
+
+#scoreTable .static-row {
+	border-bottom: 1px solid;
+}
+
+#scoreTable .static-row td {
+	padding-top: 1.5em;
+}
+
+#scoreTable td.ind-1 {
+	padding-left: 2em;
+}
+
+#scoreTable td.value {
+	text-align: right;
+}
+
+#scoreTable td.score {
+	text-align: right;
+	color: var(--score-text);
+}
+
+#scoreTable .agg-value {
+	color: var(--faded-light-text);
+}
+
+#scoreTable td.score.agg-score {
+	color: var(--faded-score-text);
+}
+
+#scoreTableTotal.static-row {
+	color: var(--score-text);
+	font-weight: bold;
+	border: none;
 }
 
 #scoreScreenFooter {
@@ -104,5 +172,6 @@ td.ind1 {
 
 #scoreScreenFooter .tab-button {
 	display: block;
-	font-size: 2em;
+	font-size: 1.5em;
+	height: 2em;
 }
