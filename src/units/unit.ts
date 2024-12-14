@@ -16,6 +16,7 @@ export interface UnitType {
 	color: Color;
 	defaultWeapons: WeaponType[];
 	hitpoints: number;
+	score: number;
 }
 export type UnitTypeMap = {
 	[K in UnitTypeName]: UnitType;
@@ -31,6 +32,7 @@ export const UnitTypes: UnitTypeMap = {
 		defaultWeapons: [WeaponTypes.pistol, WeaponTypes.shotgun],
 		// hitpoints: 25,
 		hitpoints: 1,
+		score: 0,
 	},
 	rabbit: {
 		name: "rabbit",
@@ -40,6 +42,7 @@ export const UnitTypes: UnitTypeMap = {
 		color: rgb(1, 1, 1, 1), // white
 		defaultWeapons: [WeaponTypes.animalMele],
 		hitpoints: 10,
+		score: 10,
 	},
 	pig: {
 		name: "pig",
@@ -49,6 +52,7 @@ export const UnitTypes: UnitTypeMap = {
 		color: rgb(255 / 255, 192 / 255, 203 / 255, 1), // pink?
 		defaultWeapons: [WeaponTypes.animalMele],
 		hitpoints: 40,
+		score: 50,
 	},
 } as const;
 

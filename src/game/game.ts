@@ -24,8 +24,9 @@ import { WeaponActor } from "../actors/weapon-actor";
 import { type TreeNoiseParams, WorldActor } from "../actors/world-actor";
 import { MessageBroker } from "../messages/message-broker";
 import { ScoreOverlay } from "../ui/score-overlay";
+import { ScoreScreen } from "../ui/score-screen";
 import { UI } from "../ui/ui";
-import { yeet } from "../utilities/utilities";
+import { loadHtmlComponent, yeet } from "../utilities/utilities";
 import { Score } from "./score";
 
 export class Game {
@@ -62,6 +63,7 @@ export class Game {
 		);
 		this._scores = [];
 		this._scoreOverlay = new ScoreOverlay(this._scores);
+		this._scoreScreen = new ScoreScreen(this._scores);
 
 		this._playerActor = null;
 		this._enemyActor = null;
@@ -78,6 +80,7 @@ export class Game {
 	private readonly _messageBroker: MessageBroker;
 	private readonly _ui: UI;
 	private readonly _scoreOverlay: ScoreOverlay;
+	private readonly _scoreScreen: ScoreScreen;
 	private readonly _inputActor: InputActor;
 	/** score data from each completed round */
 	private readonly _scores: Score[];

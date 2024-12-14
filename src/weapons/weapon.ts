@@ -34,6 +34,7 @@ export interface WeaponType {
 	force: number;
 	sound: SoundWave;
 	soundVolume: number;
+	score: number;
 }
 export type WeaponTypeMap = {
 	[K in WeaponTypeName]: WeaponType;
@@ -58,6 +59,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		force: 1,
 		sound: prepSound("/sounds/bat.mp3"),
 		soundVolume: 1,
+		score: 1,
 	},
 	bat: {
 		name: "bat",
@@ -71,6 +73,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		force: 0.5,
 		sound: prepSound("/sounds/bat.mp3"),
 		soundVolume: 1,
+		score: 1,
 	},
 	pistol: {
 		name: "pistol",
@@ -84,6 +87,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		force: 1,
 		sound: prepSound("/sounds/gun.mp3"),
 		soundVolume: 0.1,
+		score: 1,
 	},
 	shotgun: {
 		name: "shotgun",
@@ -97,5 +101,18 @@ export const WeaponTypes: WeaponTypeMap = {
 		force: 20,
 		sound: prepSound("/sounds/gun.mp3"),
 		soundVolume: 0.1,
+		score: 1,
 	},
 } as const;
+
+export type WeaponCountMap = {
+	[K in WeaponTypeName]: number;
+};
+
+export function createWeaponCountMap(): WeaponCountMap {
+	const map: Partial<WeaponCountMap> = {};
+	for (const weaponTypeName of WeaponTypeNames) {
+		map[weaponTypeName] = 0;
+	}
+	return map as WeaponCountMap;
+}

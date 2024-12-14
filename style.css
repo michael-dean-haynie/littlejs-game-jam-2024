@@ -3,15 +3,26 @@ body {
 }
 
 .hidden {
-	display: none;
+	display: none !important;
+}
+
+td.ind1 {
+	padding-left: 1em;
+}
+
+.value-td {
+	text-align: right;
+}
+.score-td {
+	text-align: right;
 }
 
 /* UI CONTINER */
 
 #uiContainer {
 	position: absolute;
-	/* higher than #overlayContainer */
-	z-index: 2;
+	/* higher than #overlayContainer and #scoreScreenContainer */
+	z-index: 3;
 	/* define ui dimensions in terms of view-width to scale neatly with canvas */
 	width: 15vw;
 	height: 15vw;
@@ -25,7 +36,6 @@ body {
 /* OVERLAY CONTAINER (kept in sync with canvas via ResizeObserver) */
 #overlayContainer {
 	z-index: 1;
-	font-size: 1vw;
 	display: grid;
 	grid-template-rows: .5em repeat(3, max-content) .5em;
 	grid-template-columns: .5em 1fr .5em;
@@ -46,4 +56,53 @@ body {
 	grid-column: 2 / -2;
 	grid-row: 3;
 	color: white;
+}
+
+/* SCORE SCREEN */
+#scoreScreenContainer {
+	position: absolute;
+	/* higher than #overlayContainer */
+	z-index: 2;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-color: white;
+
+	display: grid;
+	grid-template-rows: auto 1fr auto;
+	grid-template-columns: 1fr;
+	padding: 1em;
+	gap: 1em;
+}
+
+#scoreScreenTitle {
+	grid-column: 1;
+	grid-row: 1;
+
+	font-size: 3em;
+	text-align: center;
+}
+
+#scoreScreenContent {
+	grid-column: 1;
+	grid-row: 2;
+}
+
+#scoreScreenContent .tab-content {
+	color: inherit;
+	/* TODO: remove? */
+}
+
+#scoreScreenFooter {
+	grid-column: 1;
+	grid-row: 3;
+
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 1em;
+}
+
+#scoreScreenFooter .tab-button {
+	display: block;
+	font-size: 2em;
 }

@@ -21,6 +21,7 @@ export class ScoreOverlay {
 					const { blockSize, inlineSize } = entry.contentBoxSize[0];
 					this._overlayElm.style.height = `${blockSize}px`;
 					this._overlayElm.style.width = `${inlineSize}px`;
+					this._overlayElm.style.fontSize = `${inlineSize / 100}px`;
 				}
 			}
 		});

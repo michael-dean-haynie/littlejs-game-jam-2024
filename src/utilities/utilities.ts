@@ -45,3 +45,25 @@ export function posInRect(pos: Vector2, rectPos: Vector2, rectSize: Vector2) {
 
 	return false;
 }
+
+// Function to load HTML content from a file
+export async function loadHtmlComponent(
+	containerSelector: string,
+	filePath: string,
+) {
+	try {
+		const response = await fetch(filePath);
+		if (!response.ok) {
+			throw new Error(`Failed to load file: ${filePath}`);
+		}
+
+		const htmlContent = await response.text();
+		const container = document.querySelector(containerSelector);
+		if (!container) {
+			throw new Error(`Failed to find element: ${containerSelector}`);
+		}
+		container.innerHTML = htmlContent;
+	} catch (error) {
+		console.error(error);
+	}
+}
