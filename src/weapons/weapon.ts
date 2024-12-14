@@ -49,17 +49,17 @@ export function prepSound(file: string, volume = 1) {
 export const WeaponTypes: WeaponTypeMap = {
 	animalMele: {
 		name: "animalMele",
-		cooldownMs: 1000,
+		cooldownMs: 1000, // maybe base off animal stats?
 		clipSize: Number.POSITIVE_INFINITY,
 		reloadMs: 0,
 		reloadRounds: 0,
-		damage: 1,
-		range: 1,
-		spread: PI / 2, // 90 degrees
-		force: 1,
+		damage: 0, // will calc from animal mass/speed
+		range: 0, // will calc from  animal size
+		spread: PI / 2, // 90 degres
+		force: 1, // will calc from animal mass/speed
 		sound: prepSound("/sounds/bat.mp3"),
 		soundVolume: 1,
-		score: 1,
+		score: 0,
 	},
 	bat: {
 		name: "bat",
@@ -67,7 +67,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		clipSize: Number.POSITIVE_INFINITY,
 		reloadMs: 0,
 		reloadRounds: 0,
-		damage: 5,
+		damage: 3,
 		range: 2,
 		spread: PI / 2, // 90 degrees
 		force: 0.5,
@@ -82,7 +82,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		reloadMs: 1000,
 		reloadRounds: Number.POSITIVE_INFINITY,
 		damage: 5,
-		range: 5,
+		range: 4,
 		spread: PI / 20,
 		force: 1,
 		sound: prepSound("/sounds/gun.mp3"),
@@ -96,7 +96,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		reloadMs: 2000,
 		reloadRounds: Number.POSITIVE_INFINITY,
 		damage: 10,
-		range: 3,
+		range: 2,
 		spread: PI / 4,
 		force: 20,
 		sound: prepSound("/sounds/gun.mp3"),

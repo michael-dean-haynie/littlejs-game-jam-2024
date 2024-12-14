@@ -11,8 +11,9 @@ import { ReloadWeaponMessage } from "../messages/reload-weapon-message";
 import { DamageUnitMessage } from "../messages/take-damage-message";
 import { WeaponEquippedMessage } from "../messages/weapon-equipped-message";
 import { WeaponUnequippedMessage } from "../messages/weapon-unequipped-message";
+import { UnitTypes } from "../units/unit";
 import { yeet } from "../utilities/utilities";
-import type { WeaponType } from "../weapons/weapon";
+import { type WeaponType, WeaponTypes } from "../weapons/weapon";
 import { WeaponFlags } from "../weapons/weapon-flags";
 import { Actor } from "./actor";
 import { PlayerActor } from "./player-actor";
@@ -128,7 +129,7 @@ export class WeaponActor extends Actor {
 		const intersectingRules: IntersectingRayRoutingRule[] = [];
 		const aoeRays = this.calculateRayCount(this.weaponType);
 		const templateRay = vec2()
-			.setAngle(targetAngle, this.weaponType.range) // start in direction of target
+			.setAngle(targetAngle, this.calcRange()) // start in direction of target
 			.rotate(-1 * (this.weaponType.spread / 2)); // adjust backward by half the spread angle for the first ray
 		const incrementAngle = this.weaponType.spread / (aoeRays - 1);
 		for (let rayNo = 0; rayNo < aoeRays; rayNo++) {
@@ -154,15 +155,19 @@ export class WeaponActor extends Actor {
 
 		// impact (before dmg so unit can become impacted before dying)
 		this.messageBroker.publishMessage(
-			new ImpactUnitMessage(this.weaponType.force, unitActor.pos),
+			new ImpactUnitMessage(this.calcForce(), unitActor.pos),
 			routeRules,
 		);
+		// console.log(`${unitActor.unitType.name} dealt ${this.calcForce()} force.`);
 
 		// damage
 		this.messageBroker.publishMessage(
-			new DamageUnitMessage(this._unitActorId, this.weaponType.damage),
+			new DamageUnitMessage(this._unitActorId, this.calcDamage(unitActor)),
 			routeRules,
 		);
+		// console.log(
+		// 	`${unitActor.unitType.name} dealt ${this.calcDamage()} damage.`,
+		// );
 
 		// update score
 		if (unitActor.team === "player") {
@@ -219,8 +224,53 @@ export class WeaponActor extends Actor {
 	private calculateRayCount(wt: WeaponType): number {
 		const gap = 0.5; // minimum size of units for hit check
 		const rayCount = Math.ceil(
-			wt.spread / (2 * Math.asin(gap / (2 * wt.range))),
+			wt.spread / (2 * Math.asin(gap / (2 * this.calcRange()))),
 		);
 		return clamp(rayCount, 2, 100); // minimum of 2 rays to avoid divide by 0
+	}
+
+	calcDamage(unitActor?: UnitActor): number {
+		const unitActr =
+			unitActor ??
+			this.actorDirectory.getActor(this._unitActorId, UnitActor) ??
+			yeet();
+
+		if (this.weaponType === WeaponTypes.animalMele) {
+			return unitActr.unitType.mass;
+		}
+
+		// TODO: adjust with upgrades
+		return this.weaponType.damage;
+	}
+
+	calcRange(unitActor?: UnitActor): number {
+		const unitActr =
+			unitActor ??
+			this.actorDirectory.getActor(this._unitActorId, UnitActor) ??
+			yeet();
+
+		if (this.weaponType === WeaponTypes.animalMele) {
+			// TODO: add a little extra more so big animals end up having range
+			return unitActr.unitType.size * 0.75; // 1.4 diagonal / 2 (plus a little)
+		}
+
+		// TODO: adjust with upgrades
+		return this.weaponType.range;
+	}
+
+	calcForce(unitActor?: UnitActor): number {
+		const unitActr =
+			unitActor ??
+			this.actorDirectory.getActor(this._unitActorId, UnitActor) ??
+			yeet();
+
+		if (this.weaponType === WeaponTypes.animalMele) {
+			const relMoveSpeed =
+				unitActr.unitType.moveSpeed / UnitTypes.prey.moveSpeed;
+			return (unitActr.unitType.mass / 2) * (1 + relMoveSpeed);
+		}
+
+		// TODO: adjust with upgrades
+		return this.weaponType.force;
 	}
 }

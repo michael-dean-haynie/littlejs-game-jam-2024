@@ -40,7 +40,8 @@ export class WorldActor extends Actor {
 		super(...params);
 		this.actorDirectory.registerActorAlias("worldActor", this.actorId);
 		this._seed = Math.random();
-		this._sectorSize = 32; // 50 was causing frames to drop
+		// this._sectorSize = 32; // 50 was causing frames to drop
+		this._sectorSize = 17; // 32 was still causing frames to drop (17 is just over half camera view)
 		this._lastCameraPos = vec2(0, 0);
 		this._lastOccupiedSector = vec2(0, 0);
 		// this._treeNoiseParams = {

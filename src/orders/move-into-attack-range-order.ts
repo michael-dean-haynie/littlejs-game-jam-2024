@@ -44,7 +44,7 @@ export class MoveIntoAttackRangeOrder extends Order {
 				this.actorDirectory,
 				this.unitActorId,
 				this._targetUnitActorId,
-				weaponActor.weaponType.range,
+				weaponActor.calcRange(),
 			);
 			if (!check.check()) {
 				this.ability.resetProgress(); // do it again

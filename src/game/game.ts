@@ -70,6 +70,8 @@ export class Game {
 		this._playerActor = null;
 		this._enemyActor = null;
 
+		this.difficulty = 1;
+
 		this._worldActor.generateTrees();
 	}
 
@@ -87,6 +89,8 @@ export class Game {
 	private readonly _inputActor: InputActor;
 	/** score data from each completed round */
 	private readonly _scores: Score[];
+
+	difficulty: number;
 
 	private readonly _worldActor: WorldActor;
 	get worldActor(): WorldActor {
@@ -207,6 +211,7 @@ export class Game {
 			this._messageBroker,
 		);
 		this._enemyActor = new EnemyActor(
+			this,
 			this._actorDirectory,
 			this._messageBroker,
 		);

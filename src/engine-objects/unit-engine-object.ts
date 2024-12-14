@@ -69,7 +69,10 @@ export class UnitEngineObject extends EngineObject {
 					this.unitActor.equippedWeaponActorId,
 					WeaponActor,
 				);
-				if (weaponActor) {
+				if (
+					weaponActor &&
+					weaponActor.weaponType.clipSize !== Number.POSITIVE_INFINITY
+				) {
 					if (weaponActor.flags.reloading) {
 						this.renderReloadingBar();
 					} else {

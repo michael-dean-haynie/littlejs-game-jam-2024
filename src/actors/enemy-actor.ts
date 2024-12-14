@@ -1,3 +1,4 @@
+import type { Game } from "../game/game";
 import { IssueOrderMessage } from "../messages/issue-order-message";
 import type { Message } from "../messages/message";
 import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
@@ -12,12 +13,14 @@ import {
 } from "../units/unit";
 import { yeet } from "../utilities/utilities";
 import { Actor } from "./actor";
-import { PathingActor } from "./pathing-actor";
 import { UnitActor } from "./unit-actor";
 import { WorldActor } from "./world-actor";
 
 export class EnemyActor extends Actor {
-	constructor(...params: ConstructorParameters<typeof Actor>) {
+	constructor(
+		private readonly _game: Game,
+		...params: ConstructorParameters<typeof Actor>
+	) {
 		super(...params);
 
 		this.actorDirectory.registerActorAlias("enemyActor", this.actorId);
@@ -25,20 +28,32 @@ export class EnemyActor extends Actor {
 		this._unitCounts = createUnitCountMap();
 		this._targetUnitCounts = createUnitCountMap();
 
-		this._targetUnitCounts.rabbit = 10;
+		// this._targetUnitCounts.mouse = 10;
+		// this._targetUnitCounts.rabbit = 5;
 		this._targetUnitCounts.pig = 2;
+		this._lastDifficultyCheck = Date.now();
+
+		this._game.difficulty *= 0.9; // start a little easier than last left off
 	}
 
 	private _unitCounts: UnitCountMap;
 	private _targetUnitCounts: UnitCountMap;
+	private _lastDifficultyCheck: number;
 
 	update(): void {
 		super.update();
 
+		if (Date.now() - this._lastDifficultyCheck > 6_000) {
+			this._lastDifficultyCheck = Date.now();
+			this._game.difficulty += 0.1;
+		}
+
 		for (const unitTypeName of UnitTypeNames) {
-			if (
-				this._unitCounts[unitTypeName] < this._targetUnitCounts[unitTypeName]
-			) {
+			const currentCount = this._unitCounts[unitTypeName];
+			const adjTarget = Math.floor(
+				this._targetUnitCounts[unitTypeName] * this._game.difficulty,
+			);
+			if (currentCount < adjTarget) {
 				this.spawnEnemyUnit(unitTypeName);
 			}
 		}

@@ -30,7 +30,7 @@ export class ScoreOverlay {
 	}
 
 	update() {
-		this._scoreElm.textContent = this.currentScore.totalKills.toString();
+		this._scoreElm.textContent = this.currentScore.totalScore.toString();
 		this._roundElm.textContent = this.currentRound.toString();
 		this._durationElm.textContent = this.currentScore.durationFormatted;
 	}

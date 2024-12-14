@@ -1,7 +1,7 @@
 import { Color, rgb } from "littlejsengine";
 import { type WeaponType, WeaponTypes } from "../weapons/weapon";
 
-export const UnitTypeNames = ["prey", "rabbit", "pig"] as const;
+export const UnitTypeNames = ["prey", "mouse", "rabbit", "pig"] as const;
 export type UnitTypeName = (typeof UnitTypeNames)[number];
 
 export function IsUnitTypeName(value: string | null): value is UnitTypeName {
@@ -28,17 +28,27 @@ export const UnitTypes: UnitTypeMap = {
 		moveSpeed: 0.1,
 		size: 1,
 		mass: 10,
-		color: new Color().setHex("#FF5733"), // orange
-		defaultWeapons: [WeaponTypes.pistol, WeaponTypes.shotgun],
+		color: new Color().setHex("#3498db"), // blue
+		defaultWeapons: [WeaponTypes.bat, WeaponTypes.shotgun],
 		// hitpoints: 25,
-		hitpoints: 1,
+		hitpoints: 10,
 		score: 0,
+	},
+	mouse: {
+		name: "mouse",
+		moveSpeed: 0.05,
+		size: 0.5,
+		mass: 1,
+		color: new Color().setHex("#7f8c8d"), // grey
+		defaultWeapons: [WeaponTypes.animalMele],
+		hitpoints: 5,
+		score: 5,
 	},
 	rabbit: {
 		name: "rabbit",
-		moveSpeed: 0.05,
-		size: 1,
-		mass: 1,
+		moveSpeed: 0.075,
+		size: 0.75,
+		mass: 2,
 		color: rgb(1, 1, 1, 1), // white
 		defaultWeapons: [WeaponTypes.animalMele],
 		hitpoints: 10,
@@ -48,11 +58,11 @@ export const UnitTypes: UnitTypeMap = {
 		name: "pig",
 		moveSpeed: 0.025,
 		size: 1,
-		mass: 5,
+		mass: 8,
 		color: rgb(255 / 255, 192 / 255, 203 / 255, 1), // pink?
 		defaultWeapons: [WeaponTypes.animalMele],
-		hitpoints: 40,
-		score: 50,
+		hitpoints: 30,
+		score: 30,
 	},
 } as const;
 

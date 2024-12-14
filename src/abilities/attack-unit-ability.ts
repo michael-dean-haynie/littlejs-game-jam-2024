@@ -46,7 +46,7 @@ export class AttackUnitAbility extends Ability {
 				this._actorDirectory,
 				this.castingUnitActorId,
 				this._targetUnitActorId,
-				weaponActor.weaponType.range,
+				weaponActor.calcRange(),
 			),
 		);
 	}
