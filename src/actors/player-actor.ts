@@ -1,20 +1,18 @@
 import { vec2 } from "littlejsengine";
 import type { Game } from "../game/game";
-import type { Score } from "../game/score";
+import type { GameScore } from "../game/game-score";
+import type { RoundScore } from "../game/round-score";
 import type { Message } from "../messages/message";
 import { PlayerFiredWeaponMessage } from "../messages/player-fired-weapon-message";
 import { UnitHasDiedMessage } from "../messages/unit-has-died-message";
 import { UnitTypes } from "../units/unit";
-import { yeet } from "../utilities/utilities";
 import { Actor } from "./actor";
-import { PathingActor } from "./pathing-actor";
 import { UnitActor } from "./unit-actor";
 
 export class PlayerActor extends Actor {
 	constructor(
 		private readonly _game: Game,
-		/** the score for the single round that this player obj exists */
-		public readonly score: Score,
+		private readonly _gameScore: GameScore,
 		...params: ConstructorParameters<typeof Actor>
 	) {
 		super(...params);
@@ -22,6 +20,7 @@ export class PlayerActor extends Actor {
 
 		// create prey unit
 		const unitActor = new UnitActor(
+			this._gameScore,
 			UnitTypes.prey,
 			vec2(0, 0),
 			"player",
@@ -48,14 +47,14 @@ export class PlayerActor extends Actor {
 			this._game.endRound();
 		}
 		if (message.deadUnitTeam === "enemy") {
-			this.score.kills[message.deadUnitType.name] += 1;
+			this._gameScore.curRoundScore.kills[message.deadUnitType.name] += 1;
 		}
 	}
 
 	private handlePlayerFiredWeaponMessage(
 		message: PlayerFiredWeaponMessage,
 	): void {
-		this.score.shots[message.weaponTypeName] += 1;
+		this._gameScore.curRoundScore.shots[message.weaponTypeName] += 1;
 	}
 }
 

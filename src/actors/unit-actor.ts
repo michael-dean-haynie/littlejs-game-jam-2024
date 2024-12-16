@@ -1,5 +1,6 @@
 import { PI, type Vector2, clamp, vec2 } from "littlejsengine";
 import { UnitEngineObject } from "../engine-objects/unit-engine-object";
+import type { GameScore } from "../game/game-score";
 import { AddWeaponToUnitMessage } from "../messages/add-weapon-to-unit-message";
 import { ChangeUnitFacingAngleMessage } from "../messages/change-unit-facing-angle-message";
 import { ChangeUnitVelocityMessage } from "../messages/change-unit-velocity-message";
@@ -24,6 +25,7 @@ import { WeaponActor } from "./weapon-actor";
 
 export class UnitActor extends Actor {
 	constructor(
+		private readonly _gameScore: GameScore,
 		unitType: UnitType,
 		position: Vector2,
 		team: Team,
@@ -278,6 +280,7 @@ export class UnitActor extends Actor {
 		const weaponActor = new WeaponActor(
 			weaponType,
 			this.actorId,
+			this._gameScore,
 			this.actorDirectory,
 			this.messageBroker,
 		);

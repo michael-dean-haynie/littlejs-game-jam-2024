@@ -71,7 +71,7 @@ export class UnitEngineObject extends EngineObject {
 				);
 				if (
 					weaponActor &&
-					weaponActor.weaponType.clipSize !== Number.POSITIVE_INFINITY
+					weaponActor.calcClipSize() !== Number.POSITIVE_INFINITY
 				) {
 					if (weaponActor.flags.reloading) {
 						this.renderReloadingBar();
@@ -119,7 +119,7 @@ export class UnitEngineObject extends EngineObject {
 						},
 						{
 							color: new Color().setHex("#424949"),
-							value: weaponActor.weaponType.clipSize - weaponActor.loadedRounds, // missing
+							value: weaponActor.calcClipSize() - weaponActor.loadedRounds, // missing
 						},
 					],
 				});
@@ -167,10 +167,14 @@ export class UnitEngineObject extends EngineObject {
 		width,
 		height,
 		segments,
-	}: UnitBarParams) {
+	}: UnitBarParams): void {
 		const totalValue = segments
 			.map((seg) => seg.value)
 			.reduce((a, b) => a + b, 0);
+
+		if (totalValue === 0) {
+			return; // avoid divide by zero;
+		}
 		const barStartPos = pos.subtract(vec2(width / 2, 0));
 
 		let runningSegmentWidthSum = 0;

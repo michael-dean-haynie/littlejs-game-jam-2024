@@ -1,7 +1,22 @@
 import type { Game } from "../game/game";
-import { Score } from "../game/score";
+import type { GameScore } from "../game/game-score";
 import { yeet } from "../utilities/utilities";
-import { elmById } from "./score-overlay";
+import {
+	type UpgradableWeaponStat,
+	UpgradableWeaponStats,
+	type WeaponType,
+	type WeaponTypeName,
+	WeaponTypeNames,
+	WeaponTypes,
+	WeaponUpgradeTypes,
+	upgradableWeaponStatLabel,
+	weaponStatBase,
+	weaponStatBasePctg,
+	weaponStatSgmtPctg,
+	weaponStatStacks,
+	weaponStatUpgradedValue,
+} from "../weapons/weapon";
+import { elmById, elmBySelector } from "./score-overlay";
 
 export class ScoreScreen {
 	private readonly _containerElm: HTMLElement;
@@ -22,20 +37,10 @@ export class ScoreScreen {
 
 	constructor(
 		private readonly _game: Game,
-		private readonly _scores: Score[],
+		private readonly _gameScore: GameScore,
 	) {
-		// TODO: remove hardcoded score for testing ui
-		// this._scores = [];
-		// this._scores.push(new Score());
-		// this.curScore.kills.rabbit = 23;
-		// this.curScore.kills.pig = 4;
-		// this.curScore.shots.bat = 14;
-		// this.curScore.shots.pistol = 44;
-		// this.curScore.shots.shotgun = 20;
-
 		this._containerElm = elmById("scoreScreenContainer");
-		this._titleElm = elmById("scoreScreenTitle");
-		this.hide(); // immediately hide
+		this._titleElm = elmById("scoreScreenTitleContainer");
 		this._resizeObserver = new ResizeObserver((entries, observer) => {
 			for (const entry of entries) {
 				if (entry.target instanceof HTMLCanvasElement) {
@@ -82,11 +87,14 @@ export class ScoreScreen {
 		this._startBtnElm.addEventListener("click", () => {
 			return this._game.startRound();
 		});
+
+		this.hide(); // immediately hide
 	}
 
 	show(): void {
-		this._titleElm.textContent = `ROUND ${this._scores.length}`;
+		this.updateTitleSection();
 		this.updateScoreTab();
+		this.updateUpgradesTab();
 		this._scoreTabBtnElm.click(); // select score tab, initially
 
 		this._containerElm.classList.remove("hidden");
@@ -133,6 +141,16 @@ export class ScoreScreen {
 		tabContentElm.classList.remove("hidden");
 	}
 
+	private updateTitleSection(): void {
+		const roundNoElm = elmBySelector("#scoreScreenTitleContainer .title-text");
+		roundNoElm.textContent = `ROUND ${this._gameScore.roundScores.length}`;
+
+		const pointsElm = elmBySelector(
+			"#scoreScreenTitleContainer .spendable-points",
+		);
+		pointsElm.textContent = `POINTS: ${this._gameScore.spendablePoints}`;
+	}
+
 	private updateScoreTab(): void {
 		// remove all generated rows
 		for (const genRow of document.querySelectorAll("#scoreTable .gen-row")) {
@@ -144,11 +162,13 @@ export class ScoreScreen {
 		const killsValueElm = elmById("scoreTableKillsValue") as HTMLElement;
 		const killsScoreElm = elmById("scoreTableKillsScore") as HTMLElement;
 
-		killsValueElm.innerText = this.curScore.totalKills.toString();
-		killsScoreElm.innerText = this.curScore.totalKillsScore.toString();
+		killsValueElm.innerText =
+			this._gameScore.curRoundScore.totalKills.toString();
+		killsScoreElm.innerText =
+			this._gameScore.curRoundScore.totalKillsScore.toString();
 
 		// add row for each unit type (skip prey)
-		for (const rowData of this.curScore.killsScoreRows) {
+		for (const rowData of this._gameScore.curRoundScore.killsScoreRows) {
 			const rowHtml = `
 			<tr class="gen-row">
 				<td class="ind-1">${rowData.name}</td>
@@ -167,11 +187,13 @@ export class ScoreScreen {
 		const shotsValueElm = elmById("scoreTableShotsValue") as HTMLElement;
 		const shotsScoreElm = elmById("scoreTableShotsScore") as HTMLElement;
 
-		shotsValueElm.innerText = this.curScore.totalShots.toString();
-		shotsScoreElm.innerText = this.curScore.totalShotsScore.toString();
+		shotsValueElm.innerText =
+			this._gameScore.curRoundScore.totalShots.toString();
+		shotsScoreElm.innerText =
+			this._gameScore.curRoundScore.totalShotsScore.toString();
 
 		// add row for each unit type (skip prey)
-		for (const rowData of this.curScore.shotsScoreRows) {
+		for (const rowData of this._gameScore.curRoundScore.shotsScoreRows) {
 			const rowHtml = `
 			<tr class="gen-row">
 				<td class="ind-1">${rowData.name}</td>
@@ -193,18 +215,159 @@ export class ScoreScreen {
 		const durationValueElm = elmById("scoreTableDurationValue") as HTMLElement;
 		const durationScoreElm = elmById("scoreTableDurationScore") as HTMLElement;
 
-		durationValueElm.innerText = this.curScore.durationFormatted.toString();
-		durationScoreElm.innerText = this.curScore.durationScore.toString();
+		durationValueElm.innerText =
+			this._gameScore.curRoundScore.durationFormatted.toString();
+		durationScoreElm.innerText =
+			this._gameScore.curRoundScore.durationScore.toString();
 
 		// total
 		const totalTr = elmById("scoreTableTotal") as HTMLTableRowElement;
 		const totalScoreElm = elmById("scoreTableTotalScore") as HTMLElement;
 
-		totalScoreElm.innerText = this.curScore.totalScore.toString();
+		totalScoreElm.innerText =
+			this._gameScore.curRoundScore.totalScore.toString();
 	}
 
-	/** get the score for the latest round, or a blank score if no rounds exist yet */
-	private get curScore(): Score {
-		return this._scores.at(-1) || new Score();
+	private updateUpgradesTab(): void {
+		// build out table data models
+		const weaponRows: WeaponRow[] = [];
+		for (const weaponName of WeaponTypeNames) {
+			if (weaponName === "animalMele") {
+				continue;
+			}
+
+			const weaponRow: WeaponRow = {
+				name: weaponName,
+				unlocked: this._gameScore.unlockedWeapons[weaponName],
+				statRows: [],
+			};
+			weaponRows.push(weaponRow);
+
+			for (const stat of UpgradableWeaponStats) {
+				const upgradedSgmts = this._gameScore.weaponUpgrades[weaponName][stat];
+				const unUpgradedSgmts =
+					weaponStatStacks(weaponName, stat) -
+					this._gameScore.weaponUpgrades[weaponName][stat];
+				const cost =
+					WeaponUpgradeTypes[weaponName].find((ug) => ug.stat === stat)?.cost ??
+					0;
+				const statRow: WeaponStatRow = {
+					name: stat,
+					label: upgradableWeaponStatLabel(stat),
+					cost,
+					baseSgmtPctg: weaponStatBasePctg(weaponName, stat),
+					upgradeSgmtPctg: weaponStatSgmtPctg(weaponName, stat),
+					upgradedSgmts,
+					unUpgradedSgmts,
+					sgmtCount: 1 + upgradedSgmts + unUpgradedSgmts,
+					baseIsInfinite: !Number.isFinite(weaponStatBase(weaponName, stat)),
+					upgradeHandler: () => {
+						this._gameScore.spendablePoints -= cost;
+						this._gameScore.weaponUpgrades[weaponName][stat] += 1;
+						this.updateUpgradesTab();
+						this.updateTitleSection();
+					},
+					isMaxedOut:
+						this._gameScore.weaponUpgrades[weaponName][stat] ===
+						weaponStatStacks(weaponName, stat),
+					canAfford: cost <= this._gameScore.spendablePoints,
+				};
+				weaponRow.statRows.push(statRow);
+			}
+		}
+
+		// remove any existing generated elements
+		const gridElm = document.querySelector("#weaponUpgradesGrid") ?? yeet();
+		gridElm.innerHTML = "";
+
+		// update document
+		for (const wRow of weaponRows) {
+			// weapon row
+			gridElm.insertAdjacentHTML(
+				"beforeend",
+				`
+				<div class="weapon-name">${wRow.name}</div>
+				<div></div>
+				<div></div>
+			`,
+			);
+
+			// stat rows
+			for (const sRow of wRow.statRows) {
+				const statBarId = `${wRow.name}-${sRow.name}-stat-bar`;
+				const statBtnId = `${wRow.name}-${sRow.name}-stat-btn`;
+				gridElm.insertAdjacentHTML(
+					"beforeend",
+					`
+					<div class="stat-name">${sRow.label}</div>
+					<div id="${statBarId}" class="stat-bar">
+					</div>
+					<div id="${statBtnId}" class="stat-btn"></div>
+				`,
+				);
+
+				// bind click handler for button
+				const statBtn = elmById(statBtnId);
+				const btnLabel = sRow.isMaxedOut ? "maxed out" : `-${sRow.cost}`;
+				const disabled = sRow.isMaxedOut || !sRow.canAfford;
+				statBtn.insertAdjacentHTML(
+					"beforeend",
+					`<button type="button"${disabled ? " disabled" : ""}>${btnLabel}</button>`,
+				);
+				if (!disabled) {
+					statBtn.addEventListener("click", sRow.upgradeHandler);
+				}
+
+				// stat bar segments
+				const statBarElm = elmById(statBarId);
+
+				if (sRow.baseIsInfinite) {
+					statBarElm.insertAdjacentHTML(
+						"beforeend",
+						`<div class="base-sgmt infinite" style="flex-basis: 100%;">&infin;</div>`,
+					);
+					continue;
+				}
+
+				const baseFlexBasis = `${Math.ceil(sRow.baseSgmtPctg * 100)}%`;
+				const upgradeFlexBasis = `${Math.floor(sRow.upgradeSgmtPctg * 100)}%`;
+				if (baseFlexBasis !== "0%") {
+					statBarElm.insertAdjacentHTML(
+						"beforeend",
+						`<div class="base-sgmt" style="flex-basis: ${baseFlexBasis};"></div>`,
+					);
+				}
+
+				for (let seg = 0; seg < sRow.sgmtCount - 1; seg++) {
+					const segClass =
+						seg < sRow.upgradedSgmts ? "upgraded-sgmt" : "unupgraded-sgmt";
+					statBarElm.insertAdjacentHTML(
+						"beforeend",
+						`<div class="${segClass}" style="flex-basis: ${upgradeFlexBasis};"></div>`,
+					);
+				}
+			}
+		}
 	}
+}
+
+interface WeaponRow {
+	name: WeaponTypeName;
+	unlocked: boolean;
+	statRows: WeaponStatRow[];
+}
+
+interface WeaponStatRow {
+	name: UpgradableWeaponStat;
+	label: string;
+	cost: number;
+	baseSgmtPctg: number;
+	upgradeSgmtPctg: number;
+	upgradedSgmts: number;
+	unUpgradedSgmts: number;
+	sgmtCount: number;
+	baseIsInfinite: boolean;
+	upgradeHandler: () => void;
+	isMaxedOut: boolean;
+	canAfford: boolean;
 }

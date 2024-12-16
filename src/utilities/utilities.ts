@@ -67,3 +67,27 @@ export async function loadHtmlComponent(
 		console.error(error);
 	}
 }
+
+/** initializes a record with init value for each key */
+export function initRecord<K extends string | number | symbol, V>(
+	keys: readonly K[],
+	initValue: V,
+): Record<K, V> {
+	return Object.fromEntries(
+		keys.map((key) => [key, shallowCopy(initValue)]),
+	) as Record<K, V>;
+}
+
+function shallowCopy(value: unknown): unknown {
+	if (value === null || value === undefined) {
+		return value; // Return as-is for null and undefined
+	}
+
+	if (typeof value === "object") {
+		// For objects (including arrays)
+		return Array.isArray(value) ? [...value] : { ...value };
+	}
+
+	// For primitives (number, string, boolean, symbol, bigint), return as-is
+	return value;
+}

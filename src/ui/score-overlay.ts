@@ -1,5 +1,4 @@
-import { formatTime } from "littlejsengine";
-import { Score } from "../game/score";
+import type { GameScore } from "../game/game-score";
 import { yeet } from "../utilities/utilities";
 
 export class ScoreOverlay {
@@ -9,7 +8,7 @@ export class ScoreOverlay {
 	private readonly _durationElm: HTMLElement;
 	private readonly _resizeObserver: ResizeObserver;
 
-	constructor(private readonly _scores: Score[]) {
+	constructor(private readonly _gameScore: GameScore) {
 		this._overlayElm = elmById("overlayContainer");
 		this._scoreElm = elmById("score");
 		this._roundElm = elmById("round");
@@ -27,25 +26,51 @@ export class ScoreOverlay {
 		});
 		const canvasElm = document.querySelector("canvas") ?? yeet();
 		this._resizeObserver.observe(canvasElm);
+
+		this.hide();
 	}
 
 	update() {
-		this._scoreElm.textContent = this.currentScore.totalScore.toString();
+		if (this._overlayElm.classList.contains("hidden")) {
+			return; // don't update when hidden
+		}
+
+		this._scoreElm.textContent =
+			this._gameScore.curRoundScore.totalScore.toString();
+
 		this._roundElm.textContent = this.currentRound.toString();
-		this._durationElm.textContent = this.currentScore.durationFormatted;
+
+		this._durationElm.textContent =
+			this._gameScore.curRoundScore.durationFormatted;
 	}
 
-	/** get the score for the latest round, or a blank score if no rounds exist yet */
-	get currentScore(): Score {
-		return this._scores.at(-1) || new Score();
+	show(): void {
+		this.update();
+		this._overlayElm.classList.remove("hidden");
+	}
+
+	hide(): void {
+		this._overlayElm.classList.add("hidden");
+	}
+
+	toggle(): void {
+		if (this._overlayElm.classList.contains("hidden")) {
+			this.show();
+		} else {
+			this.hide();
+		}
 	}
 
 	/** the current round */
 	get currentRound(): number {
-		return this._scores.length;
+		return this._gameScore.roundScores.length;
 	}
 }
 
 export function elmById(id: string): HTMLElement {
 	return document.getElementById(id) ?? yeet();
+}
+
+export function elmBySelector(selector: string): HTMLElement {
+	return document.querySelector(selector) ?? yeet();
 }

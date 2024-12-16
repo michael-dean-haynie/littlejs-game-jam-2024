@@ -1,5 +1,5 @@
 import type { Game } from "../game/game";
-import { Score } from "../game/score";
+import { RoundScore } from "../game/round-score";
 import { yeet } from "../utilities/utilities";
 import { elmById } from "./score-overlay";
 

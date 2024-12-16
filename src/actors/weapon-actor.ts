@@ -1,4 +1,5 @@
 import { clamp, debugLine, vec2 } from "littlejsengine";
+import type { GameScore } from "../game/game-score";
 import { FireWeaponMessage } from "../messages/fire-weapon-message";
 import { ImpactUnitMessage } from "../messages/impact-unit-message";
 import type { Message } from "../messages/message";
@@ -13,7 +14,11 @@ import { WeaponEquippedMessage } from "../messages/weapon-equipped-message";
 import { WeaponUnequippedMessage } from "../messages/weapon-unequipped-message";
 import { UnitTypes } from "../units/unit";
 import { yeet } from "../utilities/utilities";
-import { type WeaponType, WeaponTypes } from "../weapons/weapon";
+import {
+	type WeaponType,
+	WeaponTypes,
+	weaponStatUpgradedValue,
+} from "../weapons/weapon";
 import { WeaponFlags } from "../weapons/weapon-flags";
 import { Actor } from "./actor";
 import { PlayerActor } from "./player-actor";
@@ -23,6 +28,7 @@ export class WeaponActor extends Actor {
 	constructor(
 		weaponType: WeaponType,
 		unitActorId: string,
+		private readonly _gameScore: GameScore,
 		...params: ConstructorParameters<typeof Actor>
 	) {
 		super(...params);
@@ -31,7 +37,7 @@ export class WeaponActor extends Actor {
 		this._flags = new WeaponFlags();
 		this._lastFire = 0;
 		this._lastReload = 0;
-		this._loadedRounds = weaponType.clipSize; // start with full clip
+		this._loadedRounds = this.calcClipSize(); // start with full clip
 	}
 
 	readonly weaponType: WeaponType;
@@ -51,7 +57,7 @@ export class WeaponActor extends Actor {
 		return Date.now() - this._lastReload;
 	}
 	get reloadRemaining(): number {
-		return this.weaponType.reloadMs - this.reloadProgress;
+		return this.calcReloadMs() - this.reloadProgress;
 	}
 
 	/** number of rounds currently in the clip */
@@ -64,12 +70,12 @@ export class WeaponActor extends Actor {
 		// check if reload cycle is finished
 		if (this.flags.reloading) {
 			const msSinceLastReload = Date.now() - this._lastReload;
-			if (msSinceLastReload >= this.weaponType.reloadMs) {
+			if (msSinceLastReload >= this.calcReloadMs()) {
 				// add rounds to the clip
 				this._loadedRounds = clamp(
 					this._loadedRounds + this.weaponType.reloadRounds,
 					0,
-					this.weaponType.clipSize,
+					this.calcClipSize(),
 				);
 			}
 		}
@@ -113,11 +119,7 @@ export class WeaponActor extends Actor {
 		this._lastFire = Date.now();
 
 		// remove a round from the clip
-		this._loadedRounds = clamp(
-			this._loadedRounds - 1,
-			0,
-			this.weaponType.clipSize,
-		);
+		this._loadedRounds = clamp(this._loadedRounds - 1, 0, this.calcClipSize());
 
 		this.updateFlags();
 
@@ -209,11 +211,11 @@ export class WeaponActor extends Actor {
 		this._flags.onCooldown = msSinceLastFire <= this.weaponType.cooldownMs;
 
 		const msSinceLastReload = Date.now() - this._lastReload;
-		this._flags.reloading = msSinceLastReload <= this.weaponType.reloadMs;
+		this._flags.reloading = msSinceLastReload <= this.calcReloadMs();
 
 		this._flags.clipIsEmpty = this._loadedRounds <= 0;
 
-		this._flags.clipIsFull = this._loadedRounds >= this.weaponType.clipSize;
+		this._flags.clipIsFull = this._loadedRounds >= this.calcClipSize();
 	}
 
 	private stopReloading(): void {
@@ -239,8 +241,11 @@ export class WeaponActor extends Actor {
 			return unitActr.unitType.mass;
 		}
 
-		// TODO: adjust with upgrades
-		return this.weaponType.damage;
+		return weaponStatUpgradedValue(
+			this.weaponType.name,
+			"damage",
+			this._gameScore.weaponUpgrades[this.weaponType.name].damage,
+		);
 	}
 
 	calcRange(unitActor?: UnitActor): number {
@@ -254,8 +259,11 @@ export class WeaponActor extends Actor {
 			return unitActr.unitType.size * 0.75; // 1.4 diagonal / 2 (plus a little)
 		}
 
-		// TODO: adjust with upgrades
-		return this.weaponType.range;
+		return weaponStatUpgradedValue(
+			this.weaponType.name,
+			"range",
+			this._gameScore.weaponUpgrades[this.weaponType.name].range,
+		);
 	}
 
 	calcForce(unitActor?: UnitActor): number {
@@ -270,7 +278,44 @@ export class WeaponActor extends Actor {
 			return (unitActr.unitType.mass / 2) * (1 + relMoveSpeed);
 		}
 
-		// TODO: adjust with upgrades
-		return this.weaponType.force;
+		return weaponStatUpgradedValue(
+			this.weaponType.name,
+			"force",
+			this._gameScore.weaponUpgrades[this.weaponType.name].force,
+		);
+	}
+
+	calcReloadMs(unitActor?: UnitActor): number {
+		const unitActr =
+			unitActor ??
+			this.actorDirectory.getActor(this._unitActorId, UnitActor) ??
+			yeet();
+
+		if (this.weaponType === WeaponTypes.animalMele) {
+			return this.weaponType.reloadMs;
+		}
+
+		return weaponStatUpgradedValue(
+			this.weaponType.name,
+			"reloadMs",
+			this._gameScore.weaponUpgrades[this.weaponType.name].reloadMs,
+		);
+	}
+
+	calcClipSize(unitActor?: UnitActor): number {
+		const unitActr =
+			unitActor ??
+			this.actorDirectory.getActor(this._unitActorId, UnitActor) ??
+			yeet();
+
+		if (this.weaponType === WeaponTypes.animalMele) {
+			return this.weaponType.clipSize;
+		}
+
+		return weaponStatUpgradedValue(
+			this.weaponType.name,
+			"clipSize",
+			this._gameScore.weaponUpgrades[this.weaponType.name].clipSize,
+		);
 	}
 }

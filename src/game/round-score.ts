@@ -14,7 +14,7 @@ import {
 	createWeaponCountMap,
 } from "../weapons/weapon";
 
-export class Score {
+export class RoundScore {
 	readonly kills: UnitCountMap;
 	readonly shots: WeaponCountMap;
 

@@ -1,17 +1,13 @@
 import {
 	type Vector2,
-	cameraPos,
 	cameraScale,
 	drawLine,
-	drawRect,
 	engineObjectsDestroy,
 	getCameraSize,
 	rgb,
 	setCameraPos,
-	setCameraScale,
 	setCanvasFixedSize,
 	setObjectDefaultDamping,
-	setShowWatermark,
 	vec2,
 } from "littlejsengine";
 import { ActorDirectory } from "../actors/actor-directory";
@@ -21,16 +17,52 @@ import { PathingActor } from "../actors/pathing-actor";
 import { PlayerActor } from "../actors/player-actor";
 import { UnitActor } from "../actors/unit-actor";
 import { WeaponActor } from "../actors/weapon-actor";
-import { type TreeNoiseParams, WorldActor } from "../actors/world-actor";
+import { WorldActor } from "../actors/world-actor";
 import { MessageBroker } from "../messages/message-broker";
 import { IntroScreen } from "../ui/intro-screen";
 import { ScoreOverlay } from "../ui/score-overlay";
 import { ScoreScreen } from "../ui/score-screen";
 import { UI } from "../ui/ui";
 import { yeet } from "../utilities/utilities";
-import { Score } from "./score";
+import { GameScore } from "./game-score";
+import { RoundScore } from "./round-score";
 
 export class Game {
+	/** buffer size of html <canvas> */
+	private readonly _canvasSize: Vector2;
+	/** size of each astar pathing cell/node (relative to world units) */
+	private readonly _astarNodeSize: number;
+
+	private readonly _actorDirectory: ActorDirectory;
+	private readonly _messageBroker: MessageBroker;
+	private readonly _ui: UI;
+	private readonly _scoreOverlay: ScoreOverlay;
+	private readonly _scoreScreen: ScoreScreen;
+	private readonly _introScreen: IntroScreen;
+	private readonly _inputActor: InputActor;
+	/** score data from each completed round */
+	private readonly _gameScore: GameScore;
+
+	private readonly _worldActor: WorldActor;
+	get worldActor(): WorldActor {
+		return this._worldActor;
+	}
+
+	private readonly _pathingActor: PathingActor;
+	get pathingActor(): PathingActor {
+		return this._pathingActor;
+	}
+
+	private _playerActor: PlayerActor | null;
+	get playerActor(): PlayerActor {
+		return this._playerActor ?? yeet();
+	}
+
+	private _enemyActor: EnemyActor | null;
+	public get enemyActor(): EnemyActor {
+		return this._enemyActor ?? yeet();
+	}
+
 	constructor() {
 		/** hardcoded to match css rule 'aspect-ratio' on #overlayContainer */
 		this._canvasSize = vec2(1280, 720); // use a 720p fixed size canvas
@@ -62,54 +94,15 @@ export class Game {
 			this._actorDirectory,
 			this._messageBroker,
 		);
-		this._scores = [];
-		this._scoreOverlay = new ScoreOverlay(this._scores);
-		this._scoreScreen = new ScoreScreen(this, this._scores);
+		this._gameScore = new GameScore();
+		this._scoreOverlay = new ScoreOverlay(this._gameScore);
+		this._scoreScreen = new ScoreScreen(this, this._gameScore);
 		this._introScreen = new IntroScreen(this);
 
 		this._playerActor = null;
 		this._enemyActor = null;
 
-		this.difficulty = 1;
-
 		this._worldActor.generateTrees();
-	}
-
-	/** buffer size of html <canvas> */
-	private readonly _canvasSize: Vector2;
-	/** size of each astar pathing cell/node (relative to world units) */
-	private readonly _astarNodeSize: number;
-
-	private readonly _actorDirectory: ActorDirectory;
-	private readonly _messageBroker: MessageBroker;
-	private readonly _ui: UI;
-	private readonly _scoreOverlay: ScoreOverlay;
-	private readonly _scoreScreen: ScoreScreen;
-	private readonly _introScreen: IntroScreen;
-	private readonly _inputActor: InputActor;
-	/** score data from each completed round */
-	private readonly _scores: Score[];
-
-	difficulty: number;
-
-	private readonly _worldActor: WorldActor;
-	get worldActor(): WorldActor {
-		return this._worldActor;
-	}
-
-	private readonly _pathingActor: PathingActor;
-	get pathingActor(): PathingActor {
-		return this._pathingActor;
-	}
-
-	private _playerActor: PlayerActor | null;
-	get playerActor(): PlayerActor {
-		return this._playerActor ?? yeet();
-	}
-
-	private _enemyActor: EnemyActor | null;
-	public get enemyActor(): EnemyActor {
-		return this._enemyActor ?? yeet();
 	}
 
 	update(): void {
@@ -192,6 +185,7 @@ export class Game {
 
 	startRound() {
 		this._scoreScreen.hide();
+		this._scoreOverlay.show();
 
 		// destroy actors
 		this._actorDirectory.resetActors();
@@ -203,15 +197,16 @@ export class Game {
 		this._worldActor.generateTrees();
 
 		// re-create player/enemy actors
-		this._scores.push(new Score());
+		this._gameScore.roundScores.push(new RoundScore());
 		this._playerActor = new PlayerActor(
 			this,
-			this._scores.at(-1) ?? yeet(),
+			this._gameScore,
 			this._actorDirectory,
 			this._messageBroker,
 		);
 		this._enemyActor = new EnemyActor(
 			this,
+			this._gameScore,
 			this._actorDirectory,
 			this._messageBroker,
 		);
@@ -219,8 +214,10 @@ export class Game {
 
 	endRound(): void {
 		// update score for this round
-		(this._scores.at(-1) ?? yeet()).end = Date.now();
+		this._gameScore.curRoundScore.end = Date.now();
+		this._gameScore.spendablePoints += this._gameScore.curRoundScore.totalScore;
 		this._scoreScreen.show();
+		this._scoreOverlay.hide();
 
 		// destroy actors
 		this._actorDirectory.resetActors();

@@ -4,6 +4,9 @@
 
 	--score-text: #f1c40f;
 	--faded-score-text: #f1c40f81;
+
+	--upgraded-sgmt: #f1c40f;
+	--unupgraded-sgmt: #f1c40f22;
 }
 
 body {
@@ -95,22 +98,29 @@ body {
 	gap: 1em;
 }
 
-#scoreScreenTitle {
+#scoreScreenTitleContainer {
 	grid-column: 1;
 	grid-row: 1;
 
-	font-size: 3em;
-	text-align: center;
+	display: grid;
+	grid-template-columns: 1fr max-content 1fr;
+
+	.title-text {
+		font-size: 3em;
+		text-align: center;
+	}
+
+	.spendable-points {
+		text-align: right;
+		color: var(--score-text);
+	}
 }
 
 #scoreScreenContent {
 	grid-column: 1;
 	grid-row: 2;
-}
 
-#scoreScreenContent .tab-content {
-	height: 100%;
-	width: 100%;
+	overflow-y: auto;
 }
 
 #scoreTabContent {
@@ -174,4 +184,67 @@ body {
 	display: block;
 	font-size: 1.5em;
 	height: 2em;
+}
+
+/* 
+-------------------------
+Upgrades Tab
+-------------------------
+*/
+#upgradesTabContent {
+	display: grid;
+	grid-template: 1fr / 1fr;
+	justify-items: center;
+	align-items: center;
+	font-size: .75em;
+
+	#weaponUpgradesGrid {
+		width: 40em;
+
+		display: grid;
+		grid-template-columns: max-content 1fr max-content;
+		row-gap: .5em;
+		column-gap: 2em;
+
+		.weapon-name {
+			padding-top: 2em;
+		}
+
+		.stat-name {
+			padding-left: 2em;
+		}
+
+		.stat-bar {
+			display: flex;
+			align-items: center;
+			gap: .5em;
+
+			.base-sgmt {
+				background-color: var(--light-text);
+
+				&.infinite {
+					background-color: var(--faded-light-text);
+					color: black;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+				}
+			}
+
+			.base-sgmt,
+			.upgraded-sgmt,
+			.unupgraded-sgmt {
+				border-radius: .25em;
+				height: .75em;
+			}
+
+			.upgraded-sgmt {
+				background-color: var(--upgraded-sgmt);
+			}
+
+			.unupgraded-sgmt {
+				background-color: var(--unupgraded-sgmt);
+			}
+		}
+	}
 }
