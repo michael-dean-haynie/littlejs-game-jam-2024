@@ -25,12 +25,12 @@ export class ScoreScreen {
 	// tab content
 	private readonly _scoreTabContentElm: HTMLElement;
 	private readonly _achievementsTabContentElm: HTMLElement;
-	private readonly _upgradesTabContentElm: HTMLElement;
+	private readonly _weaponsTabContentElm: HTMLElement;
 
 	// tab buttons
 	private readonly _scoreTabBtnElm: HTMLButtonElement;
 	private readonly _achievementsTabBtnElm: HTMLButtonElement;
-	private readonly _upgradesTabBtnElm: HTMLButtonElement;
+	private readonly _weaponsTabBtnElm: HTMLButtonElement;
 	private readonly _startBtnElm: HTMLButtonElement;
 
 	private readonly _resizeObserver: ResizeObserver;
@@ -61,14 +61,14 @@ export class ScoreScreen {
 		this._achievementsTabContentElm = elmById(
 			"achievementsTabContent",
 		) as HTMLElement;
-		this._upgradesTabContentElm = elmById("upgradesTabContent") as HTMLElement;
+		this._weaponsTabContentElm = elmById("weaponsTabContent") as HTMLElement;
 
 		// tab buttons
 		this._scoreTabBtnElm = elmById("scoreTabBtn") as HTMLButtonElement;
 		this._achievementsTabBtnElm = elmById(
 			"achievementsTabBtn",
 		) as HTMLButtonElement;
-		this._upgradesTabBtnElm = elmById("upgradesTabBtn") as HTMLButtonElement;
+		this._weaponsTabBtnElm = elmById("weaponsTabBtn") as HTMLButtonElement;
 		this._startBtnElm = elmById("startBtn") as HTMLButtonElement;
 
 		// tab button click listeners
@@ -81,8 +81,8 @@ export class ScoreScreen {
 				this._achievementsTabContentElm,
 			),
 		);
-		this._upgradesTabBtnElm.addEventListener("click", () =>
-			this.switchToTab(this._upgradesTabBtnElm, this._upgradesTabContentElm),
+		this._weaponsTabBtnElm.addEventListener("click", () =>
+			this.switchToTab(this._weaponsTabBtnElm, this._weaponsTabContentElm),
 		);
 		this._startBtnElm.addEventListener("click", () => {
 			return this._game.startRound();
@@ -94,7 +94,7 @@ export class ScoreScreen {
 	show(): void {
 		this.updateTitleSection();
 		this.updateScoreTab();
-		this.updateUpgradesTab();
+		this.updateWeaponsTab();
 		this._scoreTabBtnElm.click(); // select score tab, initially
 
 		this._containerElm.classList.remove("hidden");
@@ -120,7 +120,7 @@ export class ScoreScreen {
 		for (const tabBtn of [
 			this._scoreTabBtnElm,
 			this._achievementsTabBtnElm,
-			this._upgradesTabBtnElm,
+			this._weaponsTabBtnElm,
 		]) {
 			tabBtn.disabled = false;
 		}
@@ -132,7 +132,7 @@ export class ScoreScreen {
 		for (const tabContent of [
 			this._scoreTabContentElm,
 			this._achievementsTabContentElm,
-			this._upgradesTabContentElm,
+			this._weaponsTabContentElm,
 		]) {
 			tabContent.classList.add("hidden");
 		}
@@ -228,7 +228,76 @@ export class ScoreScreen {
 			this._gameScore.curRoundScore.totalScore.toString();
 	}
 
-	private updateUpgradesTab(): void {
+	private updateWeaponsTab(): void {
+		this.updateWeaponSlots();
+		this.updateWeaponUpgradesGrid();
+	}
+
+	private updateWeaponSlots(): void {
+		const weaponSlot1Elm = elmById("weaponSlot1") as HTMLSelectElement;
+		const weaponSlot2Elm = elmById("weaponSlot2") as HTMLSelectElement;
+
+		// clear out any generated elements
+		weaponSlot1Elm.innerHTML = "";
+		weaponSlot2Elm.innerHTML = "";
+
+		// disable second slot if there is only 1 unlocked weapon
+		const secondSlotEnabled =
+			Object.entries(this._gameScore.unlockedWeapons).filter(([key, value]) => {
+				return value;
+			}).length > 1;
+
+		if (secondSlotEnabled) {
+			weaponSlot2Elm.removeAttribute("disabled");
+		} else {
+			weaponSlot2Elm.setAttribute("disabled", "");
+		}
+
+		const weapons = WeaponTypeNames.filter((wn) => wn !== "animalMele");
+		const slots = this._gameScore.weaponSlots;
+		for (const weaponName of weapons) {
+			const unlocked = this._gameScore.unlockedWeapons[weaponName];
+			weaponSlot1Elm.insertAdjacentHTML(
+				"beforeend",
+				`<option
+					value="${weaponName}"
+					${unlocked ? "" : " disabled"}
+					${slots[0] === weaponName ? " selected" : ""}
+				>${weaponName}</option>`,
+			);
+
+			if (secondSlotEnabled) {
+				weaponSlot2Elm.insertAdjacentHTML(
+					"beforeend",
+					`<option
+						value="${weaponName}"
+						${unlocked ? "" : " disabled"}
+						${slots[1] === weaponName ? " selected" : ""}
+					>${weaponName}</option>`,
+				);
+			}
+		}
+
+		// bind event listeners
+		weaponSlot1Elm.addEventListener("change", () => {
+			const swapSlots = weaponSlot1Elm.value === this._gameScore.weaponSlots[1];
+			if (swapSlots) {
+				this._gameScore.weaponSlots[1] = this._gameScore.weaponSlots[0];
+			}
+			this._gameScore.weaponSlots[0] = weaponSlot1Elm.value as WeaponTypeName;
+			this.updateWeaponSlots();
+		});
+		weaponSlot2Elm.addEventListener("change", () => {
+			const swapSlots = weaponSlot2Elm.value === this._gameScore.weaponSlots[0];
+			if (swapSlots) {
+				this._gameScore.weaponSlots[0] = this._gameScore.weaponSlots[1];
+			}
+			this._gameScore.weaponSlots[1] = weaponSlot2Elm.value as WeaponTypeName;
+			this.updateWeaponSlots();
+		});
+	}
+
+	private updateWeaponUpgradesGrid(): void {
 		// build out table data models
 		const weaponRows: WeaponRow[] = [];
 		for (const weaponName of WeaponTypeNames) {
@@ -240,6 +309,9 @@ export class ScoreScreen {
 				name: weaponName,
 				unlocked: this._gameScore.unlockedWeapons[weaponName],
 				statRows: [],
+				cost: WeaponTypes[weaponName].cost,
+				canAfford:
+					WeaponTypes[weaponName].cost <= this._gameScore.spendablePoints,
 			};
 			weaponRows.push(weaponRow);
 
@@ -264,7 +336,7 @@ export class ScoreScreen {
 					upgradeHandler: () => {
 						this._gameScore.spendablePoints -= cost;
 						this._gameScore.weaponUpgrades[weaponName][stat] += 1;
-						this.updateUpgradesTab();
+						this.updateWeaponsTab();
 						this.updateTitleSection();
 					},
 					isMaxedOut:
@@ -283,14 +355,30 @@ export class ScoreScreen {
 		// update document
 		for (const wRow of weaponRows) {
 			// weapon row
+			const weaponBtnId = `${wRow.name}-weapon-btn`;
 			gridElm.insertAdjacentHTML(
 				"beforeend",
 				`
-				<div class="weapon-name">${wRow.name}</div>
+				<div class="weapon-name${wRow.unlocked ? "" : " locked"}">${wRow.name}</div>
 				<div></div>
-				<div></div>
+				<div id="${weaponBtnId}" class="weapon-btn"></div>
 			`,
 			);
+			const weaponBtn = elmById(weaponBtnId);
+			if (!wRow.unlocked) {
+				weaponBtn.insertAdjacentHTML(
+					"beforeend",
+					`<button${wRow.canAfford ? "" : " disabled"}>-${wRow.cost}</button>`,
+				);
+				weaponBtn.addEventListener("click", () => {
+					this._gameScore.unlockedWeapons[wRow.name] = true;
+					if (this._gameScore.weaponSlots[1] === null) {
+						this._gameScore.weaponSlots[1] = wRow.name;
+					}
+					this.updateWeaponSlots();
+					this.updateWeaponUpgradesGrid();
+				});
+			}
 
 			// stat rows
 			for (const sRow of wRow.statRows) {
@@ -299,7 +387,7 @@ export class ScoreScreen {
 				gridElm.insertAdjacentHTML(
 					"beforeend",
 					`
-					<div class="stat-name">${sRow.label}</div>
+					<div class="stat-name${wRow.unlocked ? "" : " locked"}">${sRow.label}</div>
 					<div id="${statBarId}" class="stat-bar">
 					</div>
 					<div id="${statBtnId}" class="stat-btn"></div>
@@ -334,7 +422,7 @@ export class ScoreScreen {
 				if (baseFlexBasis !== "0%") {
 					statBarElm.insertAdjacentHTML(
 						"beforeend",
-						`<div class="base-sgmt" style="flex-basis: ${baseFlexBasis};"></div>`,
+						`<div class="base-sgmt${wRow.unlocked ? "" : " locked"}" style="flex-basis: ${baseFlexBasis};"></div>`,
 					);
 				}
 
@@ -355,6 +443,8 @@ interface WeaponRow {
 	name: WeaponTypeName;
 	unlocked: boolean;
 	statRows: WeaponStatRow[];
+	cost: number;
+	canAfford: boolean;
 }
 
 interface WeaponStatRow {

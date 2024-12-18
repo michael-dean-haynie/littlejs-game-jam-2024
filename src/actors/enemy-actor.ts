@@ -30,8 +30,8 @@ export class EnemyActor extends Actor {
 		this._unitCounts = createUnitCountMap();
 		this._targetUnitCounts = createUnitCountMap();
 
-		this._targetUnitCounts.mouse = 10;
-		this._targetUnitCounts.rabbit = 5;
+		this._targetUnitCounts.mouse = 5;
+		this._targetUnitCounts.rabbit = 3;
 		this._targetUnitCounts.pig = 2;
 		this._lastDifficultyCheck = Date.now();
 

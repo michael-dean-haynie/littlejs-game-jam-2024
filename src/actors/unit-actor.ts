@@ -18,7 +18,7 @@ import { StopMovingOrder } from "../orders/stop-moving-order";
 import type { UnitType } from "../units/unit";
 import { UnitFlags } from "../units/unit-flags";
 import { yeet } from "../utilities/utilities";
-import type { WeaponType } from "../weapons/weapon";
+import { type WeaponType, WeaponTypes } from "../weapons/weapon";
 import { Actor } from "./actor";
 import type { Team } from "./player-actor";
 import { WeaponActor } from "./weapon-actor";
@@ -42,8 +42,16 @@ export class UnitActor extends Actor {
 		this._deathMessage = null;
 
 		// add default weapons (skip message broker for immediate init)
-		for (const weaponType of this.unitType.defaultWeapons) {
-			this.addWeaponActor(weaponType);
+		if (this.unitType.name === "prey") {
+			for (const weaponName of this._gameScore.weaponSlots) {
+				if (weaponName) {
+					this.addWeaponActor(WeaponTypes[weaponName]);
+				}
+			}
+		} else {
+			for (const weaponType of this.unitType.defaultWeapons) {
+				this.addWeaponActor(weaponType);
+			}
 		}
 
 		// create engine object

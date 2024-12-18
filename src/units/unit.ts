@@ -29,8 +29,7 @@ export const UnitTypes: UnitTypeMap = {
 		size: 1,
 		mass: 10,
 		color: new Color().setHex("#3498db"), // blue
-		defaultWeapons: [WeaponTypes.bat, WeaponTypes.shotgun],
-		// hitpoints: 25,
+		defaultWeapons: [],
 		hitpoints: 10,
 		score: 0,
 	},

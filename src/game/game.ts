@@ -95,7 +95,10 @@ export class Game {
 			this._messageBroker,
 		);
 		this._gameScore = new GameScore();
-		this._scoreOverlay = new ScoreOverlay(this._gameScore);
+		this._scoreOverlay = new ScoreOverlay(
+			this._actorDirectory,
+			this._gameScore,
+		);
 		this._scoreScreen = new ScoreScreen(this, this._gameScore);
 		this._introScreen = new IntroScreen(this);
 

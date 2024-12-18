@@ -32,19 +32,21 @@ export class AttackAbility extends Ability {
 			),
 		);
 
-		const weaponActor =
-			this._actorDirectory.getActor(
-				castingUnitActor.equippedWeaponActorId ?? yeet(), // should be validated to exist by previous check
-				WeaponActor,
-			) ?? yeet();
+		if (castingUnitActor.equippedWeaponActorId) {
+			const weaponActor =
+				this._actorDirectory.getActor(
+					castingUnitActor.equippedWeaponActorId, // should be validated to exist by previous check
+					WeaponActor,
+				) ?? yeet();
 
-		this._checks.push(
-			new WeaponOffCooldownCheck(this._actorDirectory, weaponActor.actorId),
-		);
+			this._checks.push(
+				new WeaponOffCooldownCheck(this._actorDirectory, weaponActor.actorId),
+			);
 
-		this._checks.push(
-			new WeaponClipNotEmptyCheck(this._actorDirectory, weaponActor.actorId),
-		);
+			this._checks.push(
+				new WeaponClipNotEmptyCheck(this._actorDirectory, weaponActor.actorId),
+			);
+		}
 	}
 
 	protected get channelDuration(): number {

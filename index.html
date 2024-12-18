@@ -10,7 +10,7 @@
     <script src="src/index.ts" type="module"></script>
 
     <div id="introScreenContainer">
-        <div id="introText">Intro text</div>
+        <div id="introText"></div>
         <!-- <button id="introBtn">Next</button> -->
     </div>
 
@@ -61,24 +61,29 @@
 
     <!-- OVERLAY CONTAINER -->
     <div id="overlayContainer" class="hidden">
-        <!-- SCORE OVERLAY -->
-        <div id="scoreOverlay">
-            <div>
+        <!-- left side -->
+        <div>
+            <div id="scoreOverlay">
                 <span>SCORE:</span>
                 <span id="score"></span>
             </div>
-        </div>
-        <div id="roundOverlay">
-            <div>
+            <div id="roundOverlay">
                 <span>ROUND:</span>
                 <span id="round"></span>
             </div>
-        </div>
-        <div id="durationOverlay">
-            <div>
+            <div id="durationOverlay">
                 <span>DURATION:</span>
                 <span id="duration"></span>
             </div>
+            <div id="weaponOverlay">
+                <span>WEAPON:</span>
+                <span id="weapon"></span>
+            </div>
+        </div>
+        
+        <!-- right side -->
+        <div>
+
         </div>
     </div>
 
@@ -96,7 +101,7 @@
                 <table id="scoreTable">
                     <tbody>
                         <tr id="scoreTableKills" class="static-row">
-                            <td>Kills</td>
+                            <td>kills</td>
                             <td class="value agg-value">
                                 <span class="tiny">x</span>
                                 <span id="scoreTableKillsValue">0</span>
@@ -105,7 +110,7 @@
                             <td id="scoreTableKillsScore" class="score agg-score">0</td>
                         </tr>
                         <tr id="scoreTableShots" class="static-row">
-                            <td>Shots Fired</td>
+                            <td>shots fired</td>
                             <td class="value agg-value">
                                 <span class="tiny">x</span>
                                 <span id="scoreTableShotsValue">0</span>
@@ -114,7 +119,7 @@
                             <td id="scoreTableShotsScore" class="score agg-score">0</td>
                         </tr>
                         <tr id="scoreTableAchieve" class="static-row">
-                            <td>Achievements</td>
+                            <td>achievements</td>
                             <td class="value">
                                 <span class="tiny">x</span>
                                 <span id="scoreTableAchieveValue">0</span>
@@ -123,7 +128,7 @@
                             <td id="scoreTableAchieveScore" class="score">0</td>
                         </tr>
                         <tr id="scoreTableDuration" class="static-row">
-                            <td>Duration</td>
+                            <td>duration</td>
                             <td class="value">
                                 <span id="scoreTableDurationValue">0</span>
                                 <span class="tiny">=</span>
@@ -131,7 +136,7 @@
                             <td id="scoreTableDurationScore" class="score">0</td>
                         </tr>
                         <tr id="scoreTableTotal" class="static-row">
-                            <td>Total Points Awarded</td>
+                            <td>total points awarded</td>
                             <td class="value"></td>
                             <td id="scoreTableTotalScore" class="score">0</td>
                         </tr>
@@ -144,18 +149,32 @@
                 <p>this is the achievements tab.</p>
             </div>
 
-            <!-- Upgrades Tab -->
-            <div id="upgradesTabContent" class="tab-content hidden">
+            <!-- Weapons Tab -->
+            <div id="weaponsTabContent" class="tab-content hidden">
+                <div id="equippedWeapons">
+                    <!-- slot 1 -->
+                    <div class="weapon-slot-formfield">
+                        <label for="weaponSlot1">weapon slot 1</label>
+                        <select id="weaponSlot1" name="weaponSlot1"></select>
+                    </div>
+
+                    <!-- slot 2 -->
+                    <div class="weapon-slot-formfield">
+                        <label for="weaponSlot2">weapon slot 2</label>
+                        <select id="weaponSlot2" name="weaponSlot2"></select>
+                    </div>
+
+                </div>
                 <div id="weaponUpgradesGrid">
 
                 </div>
             </div>
         </div>
         <div id="scoreScreenFooter">
-            <button type="button" id="scoreTabBtn" class="tab-button">Score</button>
-            <button type="button" id="achievementsTabBtn" class="tab-button">Achievements</button>
-            <button type="button" id="upgradesTabBtn" class="tab-button">Upgrades</button>
-            <button type="button" id="startBtn" class="tab-button">Start Next Round</button>
+            <button type="button" id="scoreTabBtn" class="tab-button">score</button>
+            <button type="button" id="achievementsTabBtn" class="tab-button">achievements</button>
+            <button type="button" id="weaponsTabBtn" class="tab-button">weapons</button>
+            <button type="button" id="startBtn" class="tab-button">start next round</button>
         </div>
      </div>
 </body>

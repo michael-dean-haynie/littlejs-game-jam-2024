@@ -35,6 +35,7 @@ export interface WeaponType {
 	sound: SoundWave;
 	soundVolume: number;
 	score: number;
+	cost: number;
 }
 export type WeaponTypeMap = {
 	[K in WeaponTypeName]: WeaponType;
@@ -60,6 +61,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		sound: prepSound("/sounds/bat.mp3"),
 		soundVolume: 1,
 		score: 0,
+		cost: 0,
 	},
 	bat: {
 		name: "bat",
@@ -74,6 +76,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		sound: prepSound("/sounds/bat.mp3"),
 		soundVolume: 1,
 		score: 1,
+		cost: 0,
 	},
 	pistol: {
 		name: "pistol",
@@ -88,6 +91,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		sound: prepSound("/sounds/gun.mp3"),
 		soundVolume: 0.1,
 		score: 1,
+		cost: 1000,
 	},
 	shotgun: {
 		name: "shotgun",
@@ -102,6 +106,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		sound: prepSound("/sounds/gun.mp3"),
 		soundVolume: 0.1,
 		score: 1,
+		cost: 1000,
 	},
 } as const;
 

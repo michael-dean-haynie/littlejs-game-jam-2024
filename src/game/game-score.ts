@@ -12,6 +12,7 @@ export class GameScore {
 	public readonly roundScores: RoundScore[];
 	public difficulty: number;
 	public unlockedWeapons: Record<WeaponTypeName, boolean>;
+	public weaponSlots: Array<WeaponTypeName | null>;
 	public weaponUpgrades: Record<
 		WeaponTypeName,
 		Record<UpgradableWeaponStat, number>
@@ -22,7 +23,13 @@ export class GameScore {
 		this.roundScores = [];
 		this.difficulty = 1;
 		this.spendablePoints = 0;
+
 		this.unlockedWeapons = initRecord(WeaponTypeNames, false);
+		this.unlockedWeapons.bat = true;
+		// this.unlockedWeapons.pistol = true;
+		// this.unlockedWeapons.shotgun = true;
+
+		this.weaponSlots = ["bat", null];
 
 		// init weaponUpgrades
 		this.weaponUpgrades = initRecord(
