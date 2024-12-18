@@ -1,4 +1,4 @@
-import { clamp, debugLine, vec2 } from "littlejsengine";
+import { clamp, debugLine, drawLine, vec2 } from "littlejsengine";
 import type { GameScore } from "../game/game-score";
 import { FireWeaponMessage } from "../messages/fire-weapon-message";
 import { ImpactUnitMessage } from "../messages/impact-unit-message";

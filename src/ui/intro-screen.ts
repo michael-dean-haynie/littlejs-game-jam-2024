@@ -39,7 +39,7 @@ export class IntroScreen {
 		this._containerElm.addEventListener("click", () => {
 			this.currentStep++;
 			if (this.currentStep < this.steps.length) {
-				this.introTextElm.textContent = this.steps[this.currentStep];
+				this.introTextElm.innerHTML = this.steps[this.currentStep];
 			} else {
 				this.toggle();
 				this._game.startRound();
@@ -50,10 +50,11 @@ export class IntroScreen {
 			"you've been captured by a gang of wild animals ...",
 			"every day they set you free - just to hunt you down again ...",
 			"will it ever end?",
+			"wasd = move<br/>r = reload<br/>right-click = attack<br/>left-click = cycle weapon",
 		];
 		this.currentStep = 0;
 		this.introTextElm = elmById("introText");
-		this.introTextElm.textContent = this.steps[0];
+		this.introTextElm.innerHTML = this.steps[0];
 	}
 
 	toggle(): void {

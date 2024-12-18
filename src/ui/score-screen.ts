@@ -371,6 +371,7 @@ export class ScoreScreen {
 					`<button${wRow.canAfford ? "" : " disabled"}>-${wRow.cost}</button>`,
 				);
 				weaponBtn.addEventListener("click", () => {
+					this._gameScore.spendablePoints -= wRow.cost;
 					this._gameScore.unlockedWeapons[wRow.name] = true;
 					if (this._gameScore.weaponSlots[1] === null) {
 						this._gameScore.weaponSlots[1] = wRow.name;

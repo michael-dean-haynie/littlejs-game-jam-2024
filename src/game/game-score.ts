@@ -26,8 +26,6 @@ export class GameScore {
 
 		this.unlockedWeapons = initRecord(WeaponTypeNames, false);
 		this.unlockedWeapons.bat = true;
-		// this.unlockedWeapons.pistol = true;
-		// this.unlockedWeapons.shotgun = true;
 
 		this.weaponSlots = ["bat", null];
 

@@ -58,7 +58,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		range: 0, // will calc from  animal size
 		spread: PI / 2, // 90 degres
 		force: 1, // will calc from animal mass/speed
-		sound: prepSound("/sounds/bat.mp3"),
+		sound: prepSound("./assets/bat.mp3"),
 		soundVolume: 1,
 		score: 0,
 		cost: 0,
@@ -73,7 +73,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		range: 2,
 		spread: PI / 2, // 90 degrees
 		force: 0.5,
-		sound: prepSound("/sounds/bat.mp3"),
+		sound: prepSound("./assets/bat.mp3"),
 		soundVolume: 1,
 		score: 1,
 		cost: 0,
@@ -88,7 +88,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		range: 4,
 		spread: PI / 20,
 		force: 1,
-		sound: prepSound("/sounds/gun.mp3"),
+		sound: prepSound("./assets/gun.mp3"),
 		soundVolume: 0.1,
 		score: 1,
 		cost: 1000,
@@ -103,7 +103,7 @@ export const WeaponTypes: WeaponTypeMap = {
 		range: 2,
 		spread: PI / 4,
 		force: 5,
-		sound: prepSound("/sounds/gun.mp3"),
+		sound: prepSound("./assets/gun.mp3"),
 		soundVolume: 0.1,
 		score: 1,
 		cost: 1000,

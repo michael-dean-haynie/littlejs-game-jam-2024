@@ -8,6 +8,7 @@ import {
 	setCameraPos,
 	setCanvasFixedSize,
 	setObjectDefaultDamping,
+	setShowWatermark,
 	vec2,
 } from "littlejsengine";
 import { ActorDirectory } from "../actors/actor-directory";
@@ -74,7 +75,7 @@ export class Game {
 		// setObjectDefaultFriction(0);
 		// setObjectDefaultElasticity(1);
 		// setCameraScale(7);
-		// setShowWatermark(false);
+		setShowWatermark(false);
 
 		this._actorDirectory = new ActorDirectory();
 		this._messageBroker = new MessageBroker(this._actorDirectory);

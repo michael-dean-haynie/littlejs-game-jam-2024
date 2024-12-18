@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 import checker from "vite-plugin-checker";
 
 export default defineConfig(({ mode }) => ({
+	base: "./",
 	server: {
 		port: 2024,
 	},
@@ -20,7 +21,9 @@ export default defineConfig(({ mode }) => ({
 						)
 					: path.resolve(
 							__dirname,
-							"node_modules/littlejsengine/dist/littlejs.esm.min.js",
+							// TODO: stop using debug dist just because I need the gun shot to show up
+							// "node_modules/littlejsengine/dist/littlejs.esm.min.js",
+							"node_modules/littlejsengine/dist/littlejs.esm.js",
 						),
 		},
 	},
